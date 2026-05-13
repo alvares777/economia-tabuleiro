@@ -50,10 +50,11 @@ const _NOMES_COF = ['Emergências', 'Sonhos', 'Aposentadoria', 'Doações'];
 function _setEsperandoProximo(val) {
   _esperandoProximo = val;
   window._esperandoProximo = val;
+  const jogoEncerrado = !!state.fim;
   const btnDado = document.getElementById('btnDadoRolar');
-  if (btnDado) btnDado.disabled = val;
+  if (btnDado) btnDado.disabled = jogoEncerrado || val;
   const btnFim = document.getElementById('btnFim');
-  if (btnFim) btnFim.disabled = !val;
+  if (btnFim) btnFim.disabled = jogoEncerrado || !val;
   // Após cada movimento, sincroniza a vista ao jogador ativo
   // para garantir que o painel de Cofrinhos mostra o jogador certo
   if (val) {
@@ -1025,6 +1026,13 @@ window._executarLeilao = function(vendIdx, b, winner, lance) {
 // ── Operações de jogador ──────────────────────────────────────────────────────
 
 // Forçar jogador ativo (útil para corrigir ordem via Variáveis)
+window.forcarRodadaAtual = function(novaRodada) {
+  if (novaRodada < 1 || novaRodada > state.rodadas) return;
+  state.rodada = novaRodada;
+  atualizarIndicadores();
+  agendarAutoSave();
+};
+
 window.forcarJogadorAtual = function(novoJogador) {
   if (novoJogador < 1 || novoJogador > state.qtJogadores) return;
   if (state.jogadoresPresentes[novoJogador - 1] !== 'S') return;
@@ -1240,8 +1248,15 @@ window.pagarEmprestimo = function() {
   if (deve <= 0) { mostrarMensagem('Sem dívidas!', 'ok'); return; }
   const valor = parseFloat((prompt(`Pagar quanto? (Deve: R$ ${fmt(deve)}):`) || '0').replace(',', '.'));
   if (!valor || valor <= 0) return;
-  const pago = Math.min(valor, state.jogadoresDinheiro[p]);
-  const saldoAntes  = state.jogadoresDinheiro[p];
+  const saldo = state.jogadoresDinheiro[p];
+  if (valor > saldo) {
+    mostrarMensagem(
+      `Você não tem esse valor.<br>Os <strong>R$ ${fmt(saldo)}</strong> que tem em caixa serão totalmente utilizados para pagar a dívida.`,
+      'info'
+    );
+  }
+  const pago = Math.min(valor, saldo);
+  const saldoAntes  = saldo;
   const dividaAntes = state.jogadoresEmprestimos[p];
   state.jogadoresEmprestimos[p] = Math.max(0, deve - pago);
   state.jogadoresDinheiro[p]    = Math.max(0, state.jogadoresDinheiro[p] - pago);

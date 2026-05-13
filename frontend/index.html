@@ -136,7 +136,7 @@
     <div class="table-responsive">
       <table class="table table-sm table-bordered">
         <thead>
-          <tr><th>Empresa</th><th>Valor Unit.</th><th>Dividendo</th><th>Qtd</th><th>Total</th><th>Ações</th></tr>
+          <tr><th>Empresa</th><th>Valor Unit.</th><th>Dividendo</th><th>Qtd</th><th>Total</th><th>Vantagem</th><th>Ações</th></tr>
         </thead>
         <tbody id="tbodyAcoes"></tbody>
       </table>
@@ -170,10 +170,12 @@
     </div>
     <div class="row g-3">
       <div class="col-12">
-        <div class="alert alert-warning py-2 mb-0 d-flex align-items-center gap-3">
+        <div class="alert alert-warning py-2 mb-0 d-flex align-items-center gap-3 flex-wrap">
           <span class="fw-bold small">🎮 Jogador Atual (vez de quem é):</span>
           <select id="varJogadorAtual" class="form-select form-select-sm" style="width:auto;" onchange="window.forcarJogadorAtual(parseInt(this.value))"></select>
-          <span class="small text-muted">Use este campo se precisar corrigir a ordem manualmente.</span>
+          <span class="fw-bold small ms-2">📅 Rodada Atual:</span>
+          <select id="varRodadaAtual" class="form-select form-select-sm" style="width:auto;" onchange="window.forcarRodadaAtual(parseInt(this.value))"></select>
+          <span class="small text-muted">Use estes campos se precisar corrigir manualmente.</span>
         </div>
       </div>
       <div class="col-sm-6 col-md-4 col-lg-3">

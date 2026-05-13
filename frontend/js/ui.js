@@ -4,7 +4,7 @@ import { state, calcNetWorth, calcRanking, calcCofrinho, salarioDaRodada, calcVa
 import { getNomeCasa, COR_JOGADOR } from './board.js';
 
 const SONS = {
-  moeda:    'audio/beep-01a.mp3',
+  moeda:    'audio/button-8.mp3',
   bom:      'audio/button-5.mp3',
   ruim:     'audio/button-2.mp3',
   info:     'audio/button-4.mp3',
@@ -287,15 +287,24 @@ export function renderCofrinhos() {
 
 // ── Painel de Ações ───────────────────────────────────────────────────────────
 
+const _ACAO_VANTAGEM = [
+  '🏦 Saque o valor da casa atual sem mover (a cada 2 rod.)',
+  '⚡ Dobra o dado ao rolar',
+  '🛡️ Cobre Emergências sem penalidade',
+  '💧 Dividendo 20%/rod por ação',
+  '📡 Dividendo 20%/rod por ação',
+];
+
 export function renderAcoes() {
   const tbody = document.getElementById('tbodyAcoes');
   if (!tbody) return;
   const p = state.vista - 1;
   let html = '';
   state.nomesAcoes.forEach((nome, a) => {
-    const qty = state.jogadoresAcoes[p][a];
-    const div = state.dividendos[a];
-    const val = state.valorAcao[a];
+    const qty  = state.jogadoresAcoes[p][a];
+    const div  = state.dividendos[a];
+    const val  = state.valorAcao[a];
+    const vant = _ACAO_VANTAGEM[a] || '';
     html += `
       <tr>
         <td>${nome}</td>
@@ -303,6 +312,7 @@ export function renderAcoes() {
         <td>${div}%</td>
         <td>${qty}</td>
         <td>R$ ${fmt(qty * val)}</td>
+        <td class="text-muted small">${vant}</td>
         <td>
           <button class="btn btn-sm btn-success" onclick="window.comprarAcao(${a})">+1</button>
           <button class="btn btn-sm btn-danger ms-1" onclick="window.venderAcao(${a})">-1</button>
@@ -364,6 +374,17 @@ export function carregarVariaveis() {
       opt.textContent = `${i + 1} — ${state.jogadores[i] || `Jogador ${i + 1}`}`;
       if (i + 1 === state.jogador) opt.selected = true;
       selJogAtual.appendChild(opt);
+    }
+  }
+  const selRodAtual = document.getElementById('varRodadaAtual');
+  if (selRodAtual) {
+    selRodAtual.innerHTML = '';
+    for (let r = 1; r <= state.rodadas; r++) {
+      const opt = document.createElement('option');
+      opt.value = r;
+      opt.textContent = `Rodada ${r}`;
+      if (r === state.rodada) opt.selected = true;
+      selRodAtual.appendChild(opt);
     }
   }
   setVal('varRodadas',       state.rodadas);
