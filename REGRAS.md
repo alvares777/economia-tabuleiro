@@ -139,7 +139,8 @@ O sistema separa dois conceitos distintos:
 
 ## 7. Tabuleiro — 64 Casas (posições 0–63)
 
-O tabuleiro é percorrido no sentido horário. Abaixo, todas as casas e seus efeitos:
+O tabuleiro é percorrido em qualquer sentido, o jogador decide se avança ou retrocede, porém não pode retroceder antes da casa Inicio, mas poderá avançar após a casa Inicio.
+Abaixo, todas as casas e seus efeitos:
 
 ### 7.1 Tipos de Casa
 

@@ -748,7 +748,7 @@ function processarCasa(p, dadoValor = 0) {
       if (dono === null || dono === undefined) {
         // Primeira vez: jogador resgata o bônus e vira dono
         state.jogadoresDinheiro[p] += val;
-        _registrarEvento(p, 'BONUS_CASA', { descricao: `${nome} (casa ${pos}): +R$${fmt(val)} — virou dono`, valor: val, saldoAntes });
+        _registrarEvento(p, 'BONUS_CASA', { descricao: `${nome} (ganhou valor da casa ${pos} * salário da rodada): +R$${fmt(val)} — virou dono`, valor: val, saldoAntes });
         state.casasDonos[pos] = p;
         bonusTexto = `🎉 ${nome}<br>Recebeu: <strong>R$ ${fmt(val)}</strong><br><span class="text-info small">🏠 Você é agora o dono desta casa!</span>`;
         tocarSom('bom');
