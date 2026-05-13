@@ -1,7 +1,7 @@
 # Regras — Economia dos Milionários
 
 > Manual do jogo gerado a partir do código-fonte.  
-> Última atualização: 2026-05-12  
+> Última atualização: 2026-05-13  
 > Stack: Node.js + PostgreSQL + Bootstrap 5
 
 ---
@@ -102,21 +102,28 @@ O salário cresce a cada rodada, simulando progressão de carreira.
 
 ### 5.4 Fim de Turno
 
-Ao clicar em **▶ (Próximo Jogador)**:
+Ao clicar em **✅ FIM** (botão verde na barra de navegação):
 
-1. Manutenção de bens é cobrada (`quantidade × valor_bem × manutenção%`)
+1. Manutenção de bens é cobrada (`quantidade × valor_bem × manutenção%`, com desconto da Moto se aplicável)
 2. Juros sobre empréstimos são cobrados (`dívida × juros%`)
-3. Dividendos de ações são recebidos
-4. A vez passa ao próximo jogador ativo
-5. Quando todos os jogadores completam um turno, a **rodada avança**
+3. Renda passiva de bens é recebida (Celular e Casa — ver §10.2)
+4. Dividendos de ações são recebidos
+5. A vez passa ao próximo jogador ativo
+6. Quando todos os jogadores completam um turno, a **rodada avança**
 
-### 5.5 Controle de Rodada — Avançar vs. Voltar
+### 5.5 Navegação de Consulta vs. Botão FIM
 
-**Avançar (▶ Próximo Jogador)** é a única ação que pode incrementar a rodada. O incremento ocorre exatamente quando o último jogador ativo do ciclo encerra seu turno — ou seja, quando a sequência completa de todos os jogadores tiver passado pelo ▶.
+O sistema separa dois conceitos distintos:
 
-**Voltar (◀ Anterior)** navega de volta ao jogador anterior **sem cobrar despesas e sem alterar o número da rodada**, independentemente de quantas vezes for acionado. Isso é intencional: o botão existe para que o operador possa **corrigir erros de operação** (movimento errado, dado relançado, etc.) reposicionando o turno sem efeito colateral no progresso do jogo.
+| Controle | Função |
+|---|---|
+| **✅ FIM** | Encerra o turno do jogador ativo, aplica todas as cobranças e passa a vez |
+| **◀ ▶ "Consultar"** | Navega entre jogadores apenas para **visualizar** dados (bens, ações, cofrinhos). Não altera a ordem do jogo nem aplica cobranças |
+| **"Vez:" na barra** | Indica sempre quem é o jogador ativo atual, independentemente de quem está sendo consultado |
 
-> **Regra prática:** Se a rodada avançou indevidamente por engano, não há como revertê-la pelo fluxo normal. Planeje as correções antes de clicar em ▶ no último jogador do ciclo.
+**O operador pode consultar os dados de qualquer jogador a qualquer momento** sem impactar o turno em andamento. Ao clicar em qualquer painel (Bens, Ações, Cofrinhos), os dados exibidos são do jogador selecionado na consulta — não necessariamente do jogador da vez.
+
+**Corrigir jogador ativo manualmente**: se necessário alterar a ordem do jogo, use o campo **"🎮 Jogador Atual"** no painel **⚙️ Variáveis**. Isso sobrescreve diretamente quem é o jogador da vez.
 
 ---
 
@@ -327,17 +334,81 @@ Para cada rodada r (em ordem cronológica):
 
 ## 10. Bens (RN-09)
 
-| Bem | Valor (padrão) | Manutenção (padrão) |
-|-----|---------------|---------------------|
-| Celular | R$ 10 | 10 %/rodada |
-| Moto | R$ 20 | 10 %/rodada |
-| Carro | R$ 50 | 10 %/rodada |
-| Casa | R$ 100 | 10 %/rodada |
+### 10.1 Tabela de Bens
 
-- **Custo por rodada** = `quantidade × valor_bem × manutenção%`
-- Cobrado automaticamente no final do turno (▶ Próximo).
+| Bem | Valor (padrão) | Manutenção (padrão) | Vantagem durante o jogo |
+|-----|---------------|---------------------|------------------------|
+| 📱 Celular | R$ 10 | 10 %/rodada | +R$ 3 de renda passiva por rodada por unidade |
+| 🏍️ Moto | R$ 20 | 10 %/rodada | Reduz 25 % da manutenção de todos os bens (cap −50 % com 2+) |
+| 🚗 Carro | R$ 50 | 10 %/rodada | Reduz o aluguel pago em casas alheias: 1 carro = −30 %; 2+ = −50 % |
+| 🏠 Casa | R$ 100 | 10 %/rodada | +R$ 10 de renda passiva por rodada por unidade |
+
+- **Custo por rodada** = `quantidade × valor_bem × manutenção%` (com desconto da Moto se aplicável)
+- Cobrado automaticamente ao clicar em **✅ FIM**.
 - **Devolução**: reembolsa 50 % do valor de compra.
 - Valores e percentuais são editáveis no painel **⚙️ Variáveis**.
+
+### 10.2 Renda Passiva de Bens
+
+A cada turno (ao clicar **✅ FIM**), antes dos dividendos de ações:
+
+- **Celular**: `quantidade × R$ 3` creditado automaticamente (analogia: renda digital / empreendedorismo)
+- **Casa**: `quantidade × R$ 10` creditado automaticamente (analogia: aluguel de imóvel próprio)
+
+O evento é registrado no extrato como **📱 Renda de bens** com detalhamento por tipo.
+
+### 10.3 Vantagem da Moto — Desconto de Manutenção
+
+Se o jogador possuir Motos, o custo total de manutenção de **todos os bens** é reduzido:
+
+- 1 Moto → −25 %
+- 2+ Motos → −50 % (cap máximo)
+
+A redução é informada no extrato junto ao registro de manutenção.
+
+### 10.4 Vantagem do Carro — Desconto de Aluguel
+
+Ao cair em casa de bônus cujo dono é outro jogador, o aluguel é reduzido conforme os carros do pagador:
+
+- Sem carro → paga 100 % do aluguel calculado
+- 1 Carro → paga 70 % (desconto de 30 %)
+- 2+ Carros → paga 50 % (desconto de 50 %)
+
+O desconto é informado no extrato e na mensagem de aluguel pago.
+
+### 10.5 Valor de Mercado Dinâmico
+
+O valor de revenda de um bem cai conforme a quantidade em circulação entre todos os jogadores:
+
+```
+fator_oferta      = max(0,30, 1 − (total_em_circulação − 1) × 0,10)
+valor_de_mercado  = round(valor_base × fator_oferta × 0,50)
+```
+
+- Com 1 unidade total → 50 % do valor de catálogo
+- Cada unidade adicional reduz 10 % do valor de revenda
+- Piso de 15 % do valor de catálogo (fator_oferta mínimo = 0,30)
+
+O **valor de mercado** é exibido no painel **🏠 Bens** e é o valor utilizado no cálculo do patrimônio final.
+
+### 10.6 Leilão de Bens
+
+O operador pode iniciar um leilão a qualquer momento pelo botão **🔨 Leilão** no painel **🏠 Bens**.
+
+**Fluxo:**
+
+1. **Configuração**: define o vendedor (Banco = novo bem entra no jogo; ou um jogador que possui o bem), o tipo de bem e o lance mínimo (pré-preenchido com o valor de mercado atual)
+2. **Lances**: o operador insere os lances de cada jogador verbalmente; jogadores que não desejam participar marcam "Passou"
+3. **Resultado**: o maior lance acima do mínimo vence; o sistema liquida a transação automaticamente
+
+**Liquidação ao confirmar:**
+- O lance é debitado do saldo do vencedor
+- Se o vendedor for um jogador: recebe o lance e perde 1 unidade do bem
+- Se o vendedor for o Banco: nenhum jogador recebe dinheiro (bem novo entra no jogo)
+- O vencedor ganha +1 unidade do bem
+- Ambas as partes têm o evento registrado no extrato (LEILAO_COMPRA / LEILAO_VENDA)
+
+**Conceito ensinado**: formação de preços pela oferta e demanda — as crianças veem o preço negociado vs. o preço de catálogo.
 
 ---
 
@@ -385,15 +456,24 @@ As cobranças de manutenção de bens e juros de empréstimos são **limitadas a
 ## 14. Cálculo de Riqueza Líquida (RN-12 — Ranking)
 
 ```
-riqueza_bruta   = cofrinhos(1+2+3) + dinheiro_caixa − dívidas + valor_ações
+valor_bens      = Σ (quantidade × valor_mercado_bem)   ← sensível à oferta (§10.5)
+valor_imóveis   = Σ (CASAS_BONUS[pos] × 2) para cada casa do tabuleiro que o jogador possui como dono
+valor_ações     = Σ (quantidade × preço_atual_ação)
+
+riqueza_bruta   = cofrinhos(1+2+3) + dinheiro_caixa − dívidas
+                + valor_ações + valor_bens + valor_imóveis
 imposto         = riqueza_bruta × alíquota_IR%
 dedução_IR      = min(cofrinho_Doações, imposto)
 riqueza_líquida = riqueza_bruta − imposto + dedução_IR
 ```
 
+> **Bens** entram pelo **valor de mercado** (não pelo preço de compra), que é menor e sensível à oferta em circulação — ensinando depreciação e oferta/demanda.
+
+> **Imóveis do tabuleiro**: cada casa de bônus possuída vale `bônus × 2` no patrimônio final (equivalente a dois turnos de aluguel que poderia gerar). Casas de penalidade (bônus negativo) valem zero.
+
 > **Cofrinho de Doações** deduz impostos, simulando o incentivo fiscal brasileiro a doações.
 
-O **Ranking** é exibido no painel 📊 Resumo e no centro do tabuleiro, ordenado por `riqueza_líquida` decrescente.
+O **Ranking** é exibido no painel 📊 Resumo (com colunas separadas para Cofrinhos, Ações, Bens e Imóveis) e no centro do tabuleiro, ordenado por `riqueza_líquida` decrescente.
 
 ---
 
@@ -429,9 +509,12 @@ Cada jogador tem um extrato completo acessível pelo ícone 📋. Registra todos
 | 📉 Venda Ação | Venda de ação |
 | 💳 Empréstimo | Empréstimo concedido |
 | 💸 Pag. Dívida | Pagamento de dívida |
-| 🏠 Aluguel pago | Aluguel pago ao dono de uma casa de bônus |
+| 🏠 Aluguel pago | Aluguel pago ao dono de uma casa de bônus (com desconto se possui Carro) |
 | 🏠 Aluguel recebido | Aluguel recebido como dono de uma casa de bônus |
 | 🏦 Banco (ficou) | Jogador com ações do Banco optou por ficar na casa e receber seu valor sem se mover |
+| 📱 Renda de bens | Renda passiva recebida por Celular (R$3/un) e/ou Casa (R$10/un) no fim do turno |
+| 🔨 Compra em Leilão | Bem adquirido em leilão pelo lance vencedor |
+| 🔨 Venda em Leilão | Bem vendido em leilão a outro jogador |
 
 ### Indicador de Pergunta (P#)
 

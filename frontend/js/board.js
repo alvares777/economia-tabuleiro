@@ -247,7 +247,22 @@ function buildCentro() {
       <div class="centro-dado" id="dadoCentro">🎲</div>
       <div class="centro-player"   id="centroPlayer">—</div>
       <div class="centro-ranking"  id="centroRanking">—</div>
-      <div class="centro-cofrinhos" id="centroCofrinhos">—</div>
+      <div class="centro-ativos">
+        <div class="centro-ativos-col">
+          <div class="centro-ativos-label">Cofrinhos</div>
+          <div class="centro-cofrinhos" id="centroCofrinhos">—</div>
+        </div>
+        <div class="centro-ativos-sep"></div>
+        <div class="centro-ativos-col">
+          <div class="centro-ativos-label">Bens</div>
+          <div class="centro-bens" id="centroBens">—</div>
+        </div>
+        <div class="centro-ativos-sep"></div>
+        <div class="centro-ativos-col">
+          <div class="centro-ativos-label">Ações</div>
+          <div class="centro-acoes" id="centroAcoes">—</div>
+        </div>
+      </div>
       <div class="centro-legenda">
         ${LEGENDA_CASAS.map(l =>
           `<button class="legenda-item" onclick="window._abrirLegenda('${l.id}')">${l.icone} ${l.nome}</button>`
@@ -285,6 +300,34 @@ function _atualizarCentro() {
       );
       cofEl.innerHTML = linhas.join('<br>');
     } catch { cofEl.textContent = ''; }
+  }
+
+  const acEl = document.getElementById('centroAcoes');
+  if (acEl) {
+    try {
+      const ICONS_AC = ['🏦', '⚡', '🛡️', '💧', '📡'];
+      const acoes = (state.jogadoresAcoes[p] || []);
+      const comAcao = ICONS_AC.map((ic, a) => ({ ic, a, qty: acoes[a] || 0 }))
+        .filter(({ qty }) => qty > 0);
+      acEl.innerHTML = comAcao.length
+        ? comAcao.map(({ ic, a, qty }) =>
+            `${ic} ${state.nomesAcoes[a]}: ${qty}×`).join('<br>')
+        : '<span style="opacity:.5">Sem ações</span>';
+    } catch { acEl.textContent = ''; }
+  }
+
+  const bEl = document.getElementById('centroBens');
+  if (bEl) {
+    try {
+      const ICONS_B = ['📱', '🏍️', '🚗', '🏠'];
+      const bens = (state.jogadoresBens[p] || []);
+      const comBem = ICONS_B.map((ic, b) => ({ ic, b, qty: bens[b] || 0 }))
+        .filter(({ qty }) => qty > 0);
+      bEl.innerHTML = comBem.length
+        ? comBem.map(({ ic, b, qty }) =>
+            `${ic} ${state.nomesBens[b]}: ${qty}×`).join('<br>')
+        : '<span style="opacity:.5">Sem bens</span>';
+    } catch { bEl.textContent = ''; }
   }
 }
 

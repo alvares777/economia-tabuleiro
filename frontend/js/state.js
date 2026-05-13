@@ -12,7 +12,8 @@ const state = {
   // Configuração da partida
   salario:         4,
   rodada:          1,
-  jogador:         1,
+  jogador:         1,   // jogador ativo (cujo turno é agora)
+  vista:           1,   // jogador sendo visualizado nos painéis (pode ser diferente do ativo)
   rodadas:         30,
   qtJogadores:     6,
   tempo:           360,
@@ -98,6 +99,8 @@ function initState() {
   if (!state.jogadoresBancoUso || state.jogadoresBancoUso.length !== MAX_JOGADORES) {
     state.jogadoresBancoUso = Array(MAX_JOGADORES).fill(null);
   }
+  // Sincroniza a vista com o jogador ativo ao iniciar
+  state.vista = state.jogador;
 }
 
 // ── Regras de Negócio ─────────────────────────────────────────────────────────

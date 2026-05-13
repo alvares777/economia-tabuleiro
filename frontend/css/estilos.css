@@ -472,7 +472,7 @@ body {
   user-select: none;
 }
 
-/* ── Centro: ranking e cofrinhos ────────────────────────────── */
+/* ── Centro: ranking ────────────────────────────────────────── */
 .centro-ranking {
   font-size: clamp(0.62rem, 1.25vmin, 1.5rem);
   color: rgba(255,215,0,0.75);
@@ -480,11 +480,63 @@ body {
   position: relative;
 }
 
+/* ── Centro: 3 colunas (cofrinhos | bens | ações) ───────────── */
+.centro-ativos {
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0;
+  position: relative;
+}
+
+.centro-ativos-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 0 4px;
+}
+
+.centro-ativos-label {
+  font-size: clamp(0.38rem, 0.9vmin, 1rem);
+  color: rgba(255,215,0,0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.centro-ativos-sep {
+  width: 1px;
+  align-self: stretch;
+  background: rgba(255,215,0,0.12);
+  margin: 2px 0;
+}
+
 .centro-cofrinhos {
-  font-size: clamp(0.48rem, 2vmin, 2.15rem);
+  font-size: clamp(0.44rem, 1.7vmin, 1.9rem);
   color: rgba(255,255,255,0.55);
   text-align: center;
-  line-height: 1.7;
+  line-height: 1.65;
+  position: relative;
+}
+
+.centro-acoes {
+  font-size: clamp(0.4rem, 1.5vmin, 1.6rem);
+  color: rgba(100,200,255,0.8);
+  text-align: center;
+  line-height: 1.65;
+  position: relative;
+}
+
+.centro-bens {
+  font-size: clamp(0.4rem, 1.5vmin, 1.6rem);
+  color: rgba(255,200,100,0.8);
+  text-align: center;
+  line-height: 1.65;
   position: relative;
 }
 

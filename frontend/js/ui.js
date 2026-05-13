@@ -1,6 +1,6 @@
 // ui.js — atualização de painéis, modais, indicadores
 
-import { state, calcNetWorth, calcRanking, calcCofrinho, salarioDaRodada } from './state.js';
+import { state, calcNetWorth, calcRanking, calcCofrinho, salarioDaRodada, calcValorMercadoBem } from './state.js';
 import { getNomeCasa, COR_JOGADOR } from './board.js';
 
 const SONS = {
@@ -95,35 +95,45 @@ export function mostrarPergunta(idx) {
 // ── Indicadores do navbar ─────────────────────────────────────────────────────
 
 export function atualizarIndicadores() {
-  const p = state.jogador - 1;
+  const v   = state.vista - 1;   // jogador sendo visualizado
+  const ativo = state.jogador - 1; // jogador cujo turno é agora
   const sal = salarioDaRodada();
-  const nw  = calcNetWorth(p);
 
+  // Avatar do jogador VISUALIZADO
   const elJ  = document.getElementById('indicadorJogador');
-  if (elJ) {
-    const foto       = state.jogadoresFotos?.[p];
-    const personagem = state.jogadoresPersonagem?.[p];
-    if (foto) {
-      elJ.innerHTML = `<img src="${foto}" alt="J${state.jogador}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.7);">`;
-    } else if (personagem) {
-      elJ.innerHTML = personagem.includes('/')
-        ? `<img src="${personagem}" alt="J${state.jogador}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.7);">`
-        : `<span style="font-size:22px;line-height:1;">${personagem}</span>`;
-    } else {
-      const cor = COR_JOGADOR[p] || '#aaa';
-      elJ.innerHTML = `<span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:${cor};color:#fff;font-weight:bold;font-size:0.75rem;">${state.jogador}</span>`;
-    }
-  }
+  if (elJ) elJ.innerHTML = avatarHtml(v, 26);
   setText('indicadorRodada',    `R${state.rodada}/${state.rodadas}`);
-  setText('indicadorDinheiro',  `R$ ${fmt(state.jogadoresDinheiro[p])}`);
-  setText('indicadorDivida',    `R$ ${fmt(state.jogadoresEmprestimos[p])}`);
+  setText('indicadorDinheiro',  `R$ ${fmt(state.jogadoresDinheiro[v])}`);
+  setText('indicadorDivida',    `R$ ${fmt(state.jogadoresEmprestimos[v])}`);
   setText('indicadorSalario',   `R$ ${fmt(sal)}`);
-  setText('indicadorNome',      state.jogadores[p] || '');
+  setText('indicadorNome',      state.jogadores[v] || '');
+
+  // Destaque do jogador ativo (vez de quem é)
+  const elAtivo = document.getElementById('indicadorJogadorAtivo');
+  if (elAtivo) {
+    const nomeAtivo = state.jogadores[ativo] || `Jogador ${ativo + 1}`;
+    const corAtivo  = COR_JOGADOR[ativo] || '#aaa';
+    elAtivo.innerHTML = `<span style="display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:50%;background:${corAtivo};color:#fff;font-weight:bold;font-size:0.7rem;padding:0 4px;">${ativo + 1}</span> ${nomeAtivo}`;
+  }
 }
 
 function setText(id, val) {
   const el = document.getElementById(id);
   if (el) el.textContent = val;
+}
+
+function avatarHtml(p, size = 28) {
+  const foto       = state.jogadoresFotos?.[p];
+  const personagem = state.jogadoresPersonagem?.[p];
+  const cor        = COR_JOGADOR[p] || '#aaa';
+  const imgStyle   = `width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.6);`;
+  if (foto) return `<img src="${foto}" style="${imgStyle}">`;
+  if (personagem) {
+    return personagem.includes('/')
+      ? `<img src="${personagem}" style="${imgStyle}">`
+      : `<span style="font-size:${size - 4}px;line-height:1;">${personagem}</span>`;
+  }
+  return `<span style="display:inline-flex;align-items:center;justify-content:center;width:${size}px;height:${size}px;border-radius:50%;background:${cor};color:#fff;font-weight:bold;font-size:${Math.round(size * 0.5)}px;">${p + 1}</span>`;
 }
 
 export function fmt(v) {
@@ -228,7 +238,7 @@ const NOMES_COFRINHOS = ['Emergências', 'Sonhos', 'Aposentadoria', 'Doações']
 export function renderCofrinhos() {
   const container = document.getElementById('containerCofrinhos');
   if (!container) return;
-  const p        = state.jogador - 1;
+  const p        = state.vista - 1;
   const nomeCasa = getNomeCasa(state.jogadoresPosicao[p]);
   const saldo    = state.jogadoresDinheiro[p];
 
@@ -280,7 +290,7 @@ export function renderCofrinhos() {
 export function renderAcoes() {
   const tbody = document.getElementById('tbodyAcoes');
   if (!tbody) return;
-  const p = state.jogador - 1;
+  const p = state.vista - 1;
   let html = '';
   state.nomesAcoes.forEach((nome, a) => {
     const qty = state.jogadoresAcoes[p][a];
@@ -304,22 +314,33 @@ export function renderAcoes() {
 
 // ── Painel de Bens ────────────────────────────────────────────────────────────
 
+const _BEM_VANTAGEM = [
+  '📱 +R$3/rodada',
+  '🏍️ -25% manutenção',
+  '🚗 -30% aluguel',
+  '🏠 +R$10/rodada',
+];
+
 export function renderBens() {
   const tbody = document.getElementById('tbodyBens');
   if (!tbody) return;
-  const p = state.jogador - 1;
+  const p = state.vista - 1;
   let html = '';
   state.nomesBens.forEach((nome, b) => {
-    const qty  = state.jogadoresBens[p][b];
-    const val  = state.valorBem[b];
-    const mnt  = state.despesaBem[b];
+    const qty    = state.jogadoresBens[p][b];
+    const val    = state.valorBem[b];
+    const mnt    = state.despesaBem[b];
+    const vmkt   = calcValorMercadoBem(b);
+    const vant   = _BEM_VANTAGEM[b];
     html += `
       <tr>
         <td>${nome}</td>
         <td>R$ ${fmt(val)}</td>
+        <td class="text-warning small">R$ ${fmt(vmkt)}/un</td>
         <td>${mnt}%</td>
         <td>${qty}</td>
         <td>R$ ${fmt(qty * val * mnt / 100)}/r</td>
+        <td class="small text-info">${vant}</td>
         <td>
           <button class="btn btn-sm btn-success" onclick="window.comprarBem(${b})">Comprar</button>
           <button class="btn btn-sm btn-danger ms-1" onclick="window.devolverBem(${b})">Devolver</button>
@@ -332,6 +353,19 @@ export function renderBens() {
 // ── Painel de Variáveis ───────────────────────────────────────────────────────
 
 export function carregarVariaveis() {
+  // Preenche o select de jogador atual com jogadores presentes
+  const selJogAtual = document.getElementById('varJogadorAtual');
+  if (selJogAtual) {
+    selJogAtual.innerHTML = '';
+    for (let i = 0; i < state.qtJogadores; i++) {
+      if (state.jogadoresPresentes[i] !== 'S') continue;
+      const opt = document.createElement('option');
+      opt.value = i + 1;
+      opt.textContent = `${i + 1} — ${state.jogadores[i] || `Jogador ${i + 1}`}`;
+      if (i + 1 === state.jogador) opt.selected = true;
+      selJogAtual.appendChild(opt);
+    }
+  }
   setVal('varRodadas',       state.rodadas);
   setVal('varJogadores',     state.qtJogadores);
   setVal('varTempo',         state.tempo);
@@ -423,6 +457,9 @@ const _TIPO_LABEL = {
   ALUGUEL_PAGO:         '🏠 Aluguel pago',
   ALUGUEL_RECEBIDO:     '🏠 Aluguel recebido',
   BANCO_CASA:           '🏦 Banco (ficou)',
+  RENDA_BENS:           '📱 Renda de bens',
+  LEILAO_COMPRA:        '🔨 Compra em Leilão',
+  LEILAO_VENDA:         '🔨 Venda em Leilão',
 };
 
 export function renderExtrato(p) {
@@ -500,15 +537,17 @@ export function renderResumo() {
   const container = document.getElementById('containerResumo');
   if (!container) return;
   const ranking = calcRanking();
-  let html = '<div class="table-responsive"><table class="table table-sm table-bordered"><thead><tr><th>#</th><th>Jogador</th><th>Cofrinhos</th><th>Ações</th><th>Dinheiro</th><th>Dívida</th><th>Riqueza</th><th>Imposto</th><th>Dedução</th><th class="table-success">Líquido</th></tr></thead><tbody>';
+  let html = '<div class="table-responsive"><table class="table table-sm table-bordered"><thead><tr><th>#</th><th>Jogador</th><th>Cofrinhos</th><th>Ações</th><th>Bens</th><th>Imóveis</th><th>Dinheiro</th><th>Dívida</th><th>Riqueza</th><th>Imposto</th><th>Dedução</th><th class="table-success">Líquido</th></tr></thead><tbody>';
   ranking.forEach((p, rank) => {
     const nw = calcNetWorth(p);
     const medalha = rank === 0 ? '🥇' : rank === 1 ? '🥈' : rank === 2 ? '🥉' : rank + 1;
     html += `<tr>
       <td>${medalha}</td>
-      <td>${state.jogadores[p]}</td>
+      <td><div class="d-flex align-items-center gap-2">${avatarHtml(p, 30)}<span>${state.jogadores[p]}</span></div></td>
       <td>R$ ${fmt(nw.cofAccum)}</td>
       <td>R$ ${fmt(nw.stockValue)}</td>
+      <td>R$ ${fmt(nw.bensValue)}</td>
+      <td>R$ ${fmt(nw.casasValue)}</td>
       <td>R$ ${fmt(state.jogadoresDinheiro[p])}</td>
       <td>R$ ${fmt(state.jogadoresEmprestimos[p])}</td>
       <td>R$ ${fmt(nw.riqueza)}</td>

@@ -84,11 +84,20 @@
       <!-- Pergunta -->
       <button class="btn btn-sm btn-info" onclick="fazerPergunta()">❓</button>
 
-      <!-- Navegação entre jogadores -->
+      <!-- Jogador ativo (vez de quem é) -->
+      <div class="d-flex align-items-center gap-1 px-2 py-1 rounded" style="background:rgba(255,255,255,0.1);">
+        <span class="small text-muted">Vez:</span>
+        <span id="indicadorJogadorAtivo" class="small fw-bold text-white"></span>
+      </div>
+
+      <!-- Botão FIM DO TURNO -->
+      <button id="btnFim" class="btn btn-sm btn-success fw-bold" onclick="proximoJogador()" title="Encerra o turno e passa para o próximo jogador" disabled>✅ FIM</button>
+
+      <!-- Navegação de consulta entre jogadores -->
       <div class="nav-jogador-ctrl">
-        <button class="nav-btn" onclick="anteriorJogador()" title="Jogador anterior">◀</button>
-        <span class="nav-label">Jogador</span>
-        <button class="nav-btn nav-btn-next" onclick="proximoJogador()" title="Próximo jogador">▶</button>
+        <button class="nav-btn" onclick="anteriorJogador()" title="Ver jogador anterior">◀</button>
+        <span class="nav-label">Consultar</span>
+        <button class="nav-btn nav-btn-next" onclick="proximoVista()" title="Ver próximo jogador">▶</button>
       </div>
     </div>
   </div>
@@ -138,12 +147,15 @@
   <div id="divBens" class="panel" style="display:none">
     <div class="d-flex align-items-center justify-content-between mb-3">
       <h5 class="text-light mb-0">🏠 Bens</h5>
-      <button class="btn btn-sm btn-outline-light" onclick="mostrarPainel('divTabuleiro')">↩ Tabuleiro</button>
+      <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-warning fw-bold" onclick="window.abrirModalLeilao()">🔨 Leilão</button>
+        <button class="btn btn-sm btn-outline-light" onclick="mostrarPainel('divTabuleiro')">↩ Tabuleiro</button>
+      </div>
     </div>
     <div class="table-responsive">
       <table class="table table-sm table-bordered">
         <thead>
-          <tr><th>Bem</th><th>Valor</th><th>Manutenção</th><th>Qtd</th><th>Custo/r</th><th>Ações</th></tr>
+          <tr><th>Bem</th><th>Valor</th><th>Val. Mercado</th><th>Manutenção</th><th>Qtd</th><th>Custo/r</th><th>Vantagem</th><th>Ações</th></tr>
         </thead>
         <tbody id="tbodyBens"></tbody>
       </table>
@@ -157,6 +169,13 @@
       <button class="btn btn-sm btn-outline-light" onclick="mostrarPainel('divTabuleiro')">↩ Tabuleiro</button>
     </div>
     <div class="row g-3">
+      <div class="col-12">
+        <div class="alert alert-warning py-2 mb-0 d-flex align-items-center gap-3">
+          <span class="fw-bold small">🎮 Jogador Atual (vez de quem é):</span>
+          <select id="varJogadorAtual" class="form-select form-select-sm" style="width:auto;" onchange="window.forcarJogadorAtual(parseInt(this.value))"></select>
+          <span class="small text-muted">Use este campo se precisar corrigir a ordem manualmente.</span>
+        </div>
+      </div>
       <div class="col-sm-6 col-md-4 col-lg-3">
         <label class="form-label small">Rodadas</label>
         <input type="number" id="varRodadas" class="form-control form-control-sm" min="1" max="100">
@@ -1028,6 +1047,187 @@ function promoverValorMovimento(acao) {
 
 <!-- DADO ANIMADO -->
 <div id="dado-animado" style="display:none">🎲</div>
+
+<!-- MODAL DE LEILÃO -->
+<div class="modal fade" id="modalLeilao" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title fw-bold">🔨 Leilão de Bens</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+
+        <!-- Fase 1: Configuração -->
+        <div id="leilaoFase1">
+          <div class="row g-3 mb-3">
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Vendedor</label>
+              <select id="leilaoVendedor" class="form-select" onchange="window._leilaoAtualizarSetup()">
+                <option value="-1">🏦 Banco (estoque)</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Bem</label>
+              <select id="leilaoBem" class="form-select" onchange="window._leilaoAtualizarSetup()">
+                <option value="0">📱 Celular</option>
+                <option value="1">🏍️ Moto</option>
+                <option value="2">🚗 Carro</option>
+                <option value="3">🏠 Casa</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-bold">Lance mínimo (R$)</label>
+              <input type="number" id="leilaoLanceMinimo" class="form-control" min="0" step="1">
+            </div>
+          </div>
+          <div id="leilaoSetupInfo" class="alert alert-info small mb-3"></div>
+          <button class="btn btn-warning fw-bold w-100" onclick="window._leilaoIniciar()">Iniciar Leilão →</button>
+        </div>
+
+        <!-- Fase 2: Lances -->
+        <div id="leilaoFase2" style="display:none">
+          <div class="alert alert-warning d-flex justify-content-between align-items-center mb-3">
+            <span id="leilaoFase2Header" class="fw-bold"></span>
+            <span class="small text-dark">Lance mínimo: <strong id="leilaoMinDisplay"></strong></span>
+          </div>
+          <div class="table-responsive mb-3">
+            <table class="table table-sm table-bordered" id="leilaoTabelaLances">
+              <thead><tr><th>Jogador</th><th>Saldo</th><th>Lance (R$)</th><th>Passou</th></tr></thead>
+              <tbody id="leilaoLancesTbody"></tbody>
+            </table>
+          </div>
+          <button class="btn btn-danger fw-bold w-100" onclick="window._leilaoFechar()">Fechar Leilão e Apurar →</button>
+        </div>
+
+        <!-- Fase 3: Resultado -->
+        <div id="leilaoFase3" style="display:none">
+          <div id="leilaoResultadoDiv" class="alert alert-success text-center mb-3"></div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-success fw-bold flex-fill" onclick="window._leilaoConfirmar()">✅ Confirmar Transação</button>
+            <button class="btn btn-secondary flex-fill" onclick="window._leilaoVoltar()">↩ Voltar aos Lances</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Leilão de Bens ─────────────────────────────────────────────────────────────
+window.abrirModalLeilao = function() {
+  // Preenche vendedores com jogadores presentes
+  const sel = document.getElementById('leilaoVendedor');
+  if (!sel) return;
+  sel.innerHTML = '<option value="-1">🏦 Banco (estoque)</option>';
+  for (let i = 0; i < (window._state?.qtJogadores ?? 0); i++) {
+    if (window._state?.jogadoresPresentes?.[i] !== 'S') continue;
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = window._state.jogadores[i] || `Jogador ${i+1}`;
+    sel.appendChild(opt);
+  }
+  // Reset para fase 1
+  document.getElementById('leilaoFase1').style.display = '';
+  document.getElementById('leilaoFase2').style.display = 'none';
+  document.getElementById('leilaoFase3').style.display = 'none';
+  window._leilaoAtualizarSetup();
+  new bootstrap.Modal(document.getElementById('modalLeilao')).show();
+};
+
+window._leilaoAtualizarSetup = function() {
+  const vendIdx = parseInt(document.getElementById('leilaoVendedor').value);
+  const b       = parseInt(document.getElementById('leilaoBem').value);
+  const nomes   = ['Celular','Moto','Carro','Casa'];
+  const st      = window._state;
+  if (!st) return;
+  // Valor de mercado via função global exposta pelo state.js
+  const vmkt = window._calcValorMercadoBem ? window._calcValorMercadoBem(b) : st.valorBem[b];
+  document.getElementById('leilaoLanceMinimo').value = vmkt;
+  let info = `<strong>${nomes[b]}</strong> — Valor de catálogo: R$ ${st.valorBem[b]} | Valor de mercado atual: R$ ${vmkt}`;
+  if (vendIdx >= 0) {
+    const qty = st.jogadoresBens[vendIdx]?.[b] ?? 0;
+    info += ` | Estoque do vendedor: ${qty} un.`;
+    if (qty === 0) info += ' <span class="text-danger fw-bold">(sem estoque!)</span>';
+  }
+  document.getElementById('leilaoSetupInfo').innerHTML = info;
+};
+
+window._leilaoIniciar = function() {
+  const vendIdx = parseInt(document.getElementById('leilaoVendedor').value);
+  const b       = parseInt(document.getElementById('leilaoBem').value);
+  const st      = window._state;
+  if (!st) return;
+  if (vendIdx >= 0 && (st.jogadoresBens[vendIdx]?.[b] ?? 0) === 0) {
+    alert('Vendedor não possui esse bem!'); return;
+  }
+  const min = parseFloat(document.getElementById('leilaoLanceMinimo').value) || 0;
+  const nomes = ['Celular','Moto','Carro','Casa'];
+  document.getElementById('leilaoFase2Header').textContent = `🔨 Licitando: ${nomes[b]}`;
+  document.getElementById('leilaoMinDisplay').textContent  = `R$ ${min}`;
+  // Monta tabela de lances
+  let rows = '';
+  for (let i = 0; i < st.qtJogadores; i++) {
+    if (st.jogadoresPresentes[i] !== 'S') continue;
+    if (i === vendIdx) continue; // vendedor não pode comprar de si mesmo
+    rows += `<tr>
+      <td>${st.jogadores[i] || `Jogador ${i+1}`}</td>
+      <td>R$ <span id="leilaoSaldo_${i}">${(st.jogadoresDinheiro[i] || 0).toFixed(2)}</span></td>
+      <td><input type="number" class="form-control form-control-sm" id="leilaoLance_${i}" min="0" step="1" value="0"></td>
+      <td class="text-center"><input type="checkbox" id="leilaoPassou_${i}" onchange="if(this.checked) document.getElementById('leilaoLance_${i}').value=0"></td>
+    </tr>`;
+  }
+  document.getElementById('leilaoLancesTbody').innerHTML = rows;
+  // Guarda contexto
+  window._leilaoCtx = { vendIdx, b, min };
+  document.getElementById('leilaoFase1').style.display = 'none';
+  document.getElementById('leilaoFase2').style.display = '';
+};
+
+window._leilaoFechar = function() {
+  const { vendIdx, b, min } = window._leilaoCtx;
+  const st = window._state;
+  let melhorLance = -1, melhorJogador = -1;
+  for (let i = 0; i < st.qtJogadores; i++) {
+    if (st.jogadoresPresentes[i] !== 'S') continue;
+    if (i === vendIdx) continue;
+    const passou = document.getElementById(`leilaoPassou_${i}`)?.checked;
+    if (passou) continue;
+    const lance = parseFloat(document.getElementById(`leilaoLance_${i}`)?.value) || 0;
+    if (lance >= min && lance > melhorLance) { melhorLance = lance; melhorJogador = i; }
+  }
+  const nomes = ['Celular','Moto','Carro','Casa'];
+  let resultHtml;
+  if (melhorJogador < 0) {
+    resultHtml = `<span class="text-danger fw-bold">❌ Nenhum lance válido acima do mínimo (R$ ${min.toFixed(2)}). Leilão deserto.</span>`;
+    window._leilaoCtx.deserto = true;
+  } else {
+    const nomeVend = vendIdx < 0 ? 'Banco' : (st.jogadores[vendIdx] || `Jogador ${vendIdx+1}`);
+    resultHtml = `🏆 <strong>${st.jogadores[melhorJogador] || `Jogador ${melhorJogador+1}`}</strong> vence o leilão!<br>
+      Bem: <strong>${nomes[b]}</strong> | Lance: <strong>R$ ${melhorLance.toFixed(2)}</strong><br>
+      Vendedor: <strong>${nomeVend}</strong>`;
+    window._leilaoCtx.winner = melhorJogador;
+    window._leilaoCtx.lance  = melhorLance;
+    window._leilaoCtx.deserto = false;
+  }
+  document.getElementById('leilaoResultadoDiv').innerHTML = resultHtml;
+  document.getElementById('leilaoFase2').style.display = 'none';
+  document.getElementById('leilaoFase3').style.display = '';
+};
+
+window._leilaoVoltar = function() {
+  document.getElementById('leilaoFase2').style.display = '';
+  document.getElementById('leilaoFase3').style.display = 'none';
+};
+
+window._leilaoConfirmar = function() {
+  const { vendIdx, b, winner, lance, deserto } = window._leilaoCtx;
+  if (deserto) { bootstrap.Modal.getInstance(document.getElementById('modalLeilao')).hide(); return; }
+  window._executarLeilao(vendIdx, b, winner, lance);
+  bootstrap.Modal.getInstance(document.getElementById('modalLeilao')).hide();
+};
+</script>
 
 </body>
 </html>

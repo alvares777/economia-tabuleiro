@@ -1,6 +1,6 @@
 // main.js — ponto de entrada; conecta tudo
 
-import { state, initState, toSavePayload, fromLoadResponse, salarioDaRodada, calcCofrinho } from './state.js';
+import { state, initState, toSavePayload, fromLoadResponse, salarioDaRodada, calcCofrinho, calcValorMercadoBem } from './state.js';
 import { saveGame, loadGame, getQuestions, apiGetActiveUsers } from './api.js';
 import { requireLogin, getUser, isAdmin, logout } from './auth.js';
 import { renderTabuleiro, atualizarPosicoes, atualizarDonos, getNomeCasa, CASAS_BONUS, COR_JOGADOR, LEGENDA_CASAS } from './board.js';
@@ -13,6 +13,8 @@ import {
 
 window._navPerguntaOperador    = navPerguntaOperador;
 window._irParaPerguntaOperador = irParaPerguntaOperador;
+window._state                  = state;
+window._calcValorMercadoBem    = calcValorMercadoBem;
 window._legendaCasas           = LEGENDA_CASAS;
 
 // ── Inicialização ─────────────────────────────────────────────────────────────
@@ -48,8 +50,16 @@ const _NOMES_COF = ['Emergências', 'Sonhos', 'Aposentadoria', 'Doações'];
 function _setEsperandoProximo(val) {
   _esperandoProximo = val;
   window._esperandoProximo = val;
-  const btn = document.getElementById('btnDadoRolar');
-  if (btn) btn.disabled = val;
+  const btnDado = document.getElementById('btnDadoRolar');
+  if (btnDado) btnDado.disabled = val;
+  const btnFim = document.getElementById('btnFim');
+  if (btnFim) btnFim.disabled = !val;
+  // Após cada movimento, sincroniza a vista ao jogador ativo
+  // para garantir que o painel de Cofrinhos mostra o jogador certo
+  if (val) {
+    state.vista = state.jogador;
+    atualizarIndicadores();
+  }
 }
 
 async function init() {
@@ -668,21 +678,24 @@ function processarCasa(p, dadoValor = 0) {
         // Próprio dono: sem bônus
         bonusTexto = `🏠 ${nome}<br>Esta casa é sua! Nenhum bônus adicional.`;
       } else {
-        // Outro jogador é dono: paga aluguel = dadoValor
-        const nomeDono    = state.jogadores[dono] || `Jogador ${dono + 1}`;
-        const aluguel     = Math.round(dadoValor * 100) / 100;
+        // Outro jogador é dono: paga aluguel = dadoValor (desconto p/ quem tem Carro)
+        const nomeDono       = state.jogadores[dono] || `Jogador ${dono + 1}`;
+        const qtdCarros      = state.jogadoresBens[p][2] || 0;
+        const fatorAluguel   = qtdCarros >= 2 ? 0.5 : qtdCarros === 1 ? 0.7 : 1.0;
+        const aluguel        = Math.round(dadoValor * fatorAluguel * 100) / 100;
         const saldoAntesDono = state.jogadoresDinheiro[dono];
         state.jogadoresDinheiro[p]    -= aluguel;
         state.jogadoresDinheiro[dono] += aluguel;
+        const descontoInfo = qtdCarros > 0 ? ` 🚗 desc.${qtdCarros >= 2 ? '50' : '30'}%` : '';
         _registrarEvento(p, 'ALUGUEL_PAGO', {
-          descricao: `🏠 Aluguel (casa ${pos} — ${nome}): -R$${fmt(aluguel)} → ${nomeDono}`,
+          descricao: `🏠 Aluguel (casa ${pos} — ${nome}): -R$${fmt(aluguel)}${descontoInfo} → ${nomeDono}`,
           valor: -aluguel, saldoAntes,
         });
         _registrarEvento(dono, 'ALUGUEL_RECEBIDO', {
           descricao: `🏠 Aluguel (casa ${pos} — ${nome}): +R$${fmt(aluguel)} ← ${state.jogadores[p] || `Jogador ${p + 1}`}`,
           valor: aluguel, saldoAntes: saldoAntesDono,
         });
-        bonusTexto = `🏠 ${nome}<br>Propriedade de <strong>${nomeDono}</strong><br>Pagou aluguel: <strong>R$ ${fmt(aluguel)}</strong>${_alertaSaldoNeg(p)}`;
+        bonusTexto = `🏠 ${nome}<br>Propriedade de <strong>${nomeDono}</strong><br>Pagou aluguel: <strong>R$ ${fmt(aluguel)}</strong>${descontoInfo}${_alertaSaldoNeg(p)}`;
         tocarSom('ruim');
       }
     } else {
@@ -810,8 +823,19 @@ window.proximoJogador = function() {
 
   if (_pendingInquebraveis && _pendingInquebraveis.player === state.jogador - 1) {
     const depositado = _somarCofrinhoRodadaAtual(_pendingInquebraveis.player) - _pendingInquebraveis.cofrinhosTotaisAntes;
-    if (depositado < _pendingInquebraveis.minimo) {
-      mostrarMensagem(_MSG_INQUEBRAVEIS, 'erro');
+    const minimo     = _pendingInquebraveis.minimo;
+    if (depositado < minimo - 0.01) {
+      const falta = minimo - depositado;
+      mostrarMensagem(
+        `💪 INQUEBRÁVEIS — depósito pendente!<br>` +
+        `Mínimo exigido: <strong>R$ ${fmt(minimo)}</strong><br>` +
+        `Depositado até agora: <strong>R$ ${fmt(depositado)}</strong><br>` +
+        `Faltam: <strong class="text-danger">R$ ${fmt(falta)}</strong><br><br>` +
+        `Deposite em qualquer cofrinho do jogador ativo antes de clicar FIM.`,
+        'erro'
+      );
+      state.vista = state.jogador;
+      atualizarIndicadores();
       mostrarPainel('divCofrinhos');
       return;
     }
@@ -820,6 +844,7 @@ window.proximoJogador = function() {
 
   cobrarCustosBens();
   cobrarJuros();
+  receberRendaBens();
   receberDividendos();
 
   let proximo = state.jogador;
@@ -841,22 +866,35 @@ window.proximoJogador = function() {
   }
 
   state.jogador = proximo;
+  state.vista   = proximo;   // sincroniza visualização com o jogador ativo
   _setEsperandoProximo(false);
   atualizarPosicoes();
   atualizarIndicadores();
   renderResumo();
-  _renderPainelAtivo();
+  mostrarPainel('divTabuleiro');
   agendarAutoSave();
 };
 
+// Navega para o jogador ANTERIOR para consulta (não avança o turno)
 window.anteriorJogador = function() {
-  let anterior = state.jogador;
+  let anterior = state.vista;
   do {
     anterior = anterior <= 1 ? state.qtJogadores : anterior - 1;
-    if (anterior === state.jogador) break;
+    if (anterior === state.vista) break;
   } while (state.jogadoresPresentes[anterior - 1] !== 'S');
-  state.jogador = anterior;
-  atualizarPosicoes();
+  state.vista = anterior;
+  atualizarIndicadores();
+  _renderPainelAtivo();
+};
+
+// Navega para o PRÓXIMO jogador para consulta (não avança o turno)
+window.proximoVista = function() {
+  let proximo = state.vista;
+  do {
+    proximo = proximo >= state.qtJogadores ? 1 : proximo + 1;
+    if (proximo === state.vista) break;
+  } while (state.jogadoresPresentes[proximo - 1] !== 'S');
+  state.vista = proximo;
   atualizarIndicadores();
   _renderPainelAtivo();
 };
@@ -869,11 +907,16 @@ function cobrarCustosBens() {
     if (qty > 0) total += qty * state.valorBem[b] * (state.despesaBem[b] / 100);
   }
   if (total > 0) {
+    // Moto: cada moto reduz 25% da manutenção (cap -50%)
+    const qtdMotos   = state.jogadoresBens[p][1] || 0;
+    const descMoto   = Math.min(0.5, qtdMotos * 0.25);
+    const totalFinal = Math.round(total * (1 - descMoto) * 100) / 100;
     const saldoAntes = state.jogadoresDinheiro[p];
-    state.jogadoresDinheiro[p] = Math.max(0, state.jogadoresDinheiro[p] - total);
+    state.jogadoresDinheiro[p] = Math.max(0, state.jogadoresDinheiro[p] - totalFinal);
     const pago = saldoAntes - state.jogadoresDinheiro[p];
+    const descInfo = qtdMotos > 0 ? ` 🏍️ desc.${descMoto * 100}%` : '';
     _registrarEvento(p, 'CUSTO_BENS', {
-      descricao: `Manutenção de bens: -R$${fmt(pago)}`,
+      descricao: `Manutenção de bens: -R$${fmt(pago)}${descInfo}`,
       valor: -pago,
       saldoAntes,
     });
@@ -893,6 +936,27 @@ function cobrarJuros() {
       valor: -pago,
       saldoAntes,
       dividaAntes,
+    });
+  }
+}
+
+function receberRendaBens() {
+  const p = state.jogador - 1;
+  const qtdCEL  = state.jogadoresBens[p][0] || 0;
+  const qtdCASA = state.jogadoresBens[p][3] || 0;
+  const rendaCEL  = qtdCEL  * 3;
+  const rendaCASA = qtdCASA * 10;
+  const total = rendaCEL + rendaCASA;
+  if (total > 0) {
+    const saldoAntes = state.jogadoresDinheiro[p];
+    state.jogadoresDinheiro[p] += total;
+    const partes = [];
+    if (rendaCEL  > 0) partes.push(`Celular ${qtdCEL}×R$3: +R$${fmt(rendaCEL)}`);
+    if (rendaCASA > 0) partes.push(`Casa ${qtdCASA}×R$10: +R$${fmt(rendaCASA)}`);
+    _registrarEvento(p, 'RENDA_BENS', {
+      descricao: `Renda de bens: ${partes.join(' | ')}`,
+      valor: total,
+      saldoAntes,
     });
   }
 }
@@ -922,7 +986,55 @@ function receberDividendos() {
   }
 }
 
+// ── Leilão de Bens ────────────────────────────────────────────────────────────
+
+window._executarLeilao = function(vendIdx, b, winner, lance) {
+  const nomes = ['Celular', 'Moto', 'Carro', 'Casa'];
+  const nomeVend   = vendIdx < 0 ? 'Banco' : (state.jogadores[vendIdx] || `Jogador ${vendIdx + 1}`);
+  const nomeWinner = state.jogadores[winner] || `Jogador ${winner + 1}`;
+
+  // Debita lance do vencedor
+  const saldoWinnerAntes = state.jogadoresDinheiro[winner];
+  state.jogadoresDinheiro[winner] -= lance;
+  state.jogadoresBens[winner][b]  += 1;
+  _registrarEvento(winner, 'LEILAO_COMPRA', {
+    descricao: `🔨 Leilão: comprou 1× ${nomes[b]} por R$${fmt(lance)} (vendedor: ${nomeVend})`,
+    valor: -lance, saldoAntes: saldoWinnerAntes, bemIdx: b,
+  });
+
+  // Credita ao vendedor (se for jogador)
+  if (vendIdx >= 0) {
+    const saldoVendAntes = state.jogadoresDinheiro[vendIdx];
+    state.jogadoresDinheiro[vendIdx] += lance;
+    state.jogadoresBens[vendIdx][b]  -= 1;
+    _registrarEvento(vendIdx, 'LEILAO_VENDA', {
+      descricao: `🔨 Leilão: vendeu 1× ${nomes[b]} por R$${fmt(lance)} para ${nomeWinner}`,
+      valor: lance, saldoAntes: saldoVendAntes, bemIdx: b,
+    });
+  }
+
+  atualizarIndicadores();
+  renderBens();
+  agendarAutoSave();
+  mostrarMensagem(
+    `🔨 Leilão concluído!<br><strong>${nomeWinner}</strong> comprou 1× <strong>${nomes[b]}</strong> por <strong>R$ ${fmt(lance)}</strong> de <strong>${nomeVend}</strong>.`,
+    'ok'
+  );
+};
+
 // ── Operações de jogador ──────────────────────────────────────────────────────
+
+// Forçar jogador ativo (útil para corrigir ordem via Variáveis)
+window.forcarJogadorAtual = function(novoJogador) {
+  if (novoJogador < 1 || novoJogador > state.qtJogadores) return;
+  if (state.jogadoresPresentes[novoJogador - 1] !== 'S') return;
+  state.jogador = novoJogador;
+  state.vista   = novoJogador;
+  atualizarPosicoes();
+  atualizarIndicadores();
+  _renderPainelAtivo();
+  agendarAutoSave();
+};
 
 window.renomearJogador = function(p, nome) {
   state.jogadores[p] = nome;
@@ -968,7 +1080,7 @@ window.depositarCofrinho = function(c) {
   const input = document.getElementById(`depositoCofrinho${c}`);
   const valor = parseFloat(input?.value) || 0;
   if (valor <= 0) return;
-  const p = state.jogador - 1;
+  const p = state.vista - 1;
   if (valor > state.jogadoresDinheiro[p]) {
     mostrarMensagem('Saldo insuficiente!', 'erro');
     return;
@@ -1003,7 +1115,7 @@ window.sacarCofrinho = function(c) {
   const input = document.getElementById(`saqueCofrinho${c}`);
   const valor = parseFloat(input?.value) || 0;
   if (valor <= 0) return;
-  const p = state.jogador - 1;
+  const p = state.vista - 1;
   const disponivel = calcCofrinho(p, c);
   if (disponivel <= 0) { mostrarMensagem('Cofrinho vazio!', 'erro'); return; }
   if (valor > disponivel + 0.01) { mostrarMensagem('Valor supera o saldo do cofrinho!', 'erro'); return; }
@@ -1029,7 +1141,7 @@ window.sacarCofrinho = function(c) {
 };
 
 window.comprarAcao = function(a) {
-  const p   = state.jogador - 1;
+  const p   = state.vista - 1;
   const val = state.valorAcao[a];
   if (state.jogadoresDinheiro[p] < val) { mostrarMensagem('Saldo insuficiente!', 'erro'); return; }
   const saldoAntes = state.jogadoresDinheiro[p];
@@ -1048,7 +1160,7 @@ window.comprarAcao = function(a) {
 };
 
 window.venderAcao = function(a) {
-  const p   = state.jogador - 1;
+  const p   = state.vista - 1;
   if (state.jogadoresAcoes[p][a] <= 0) return;
   const val = state.valorAcao[a];
   const saldoAntes = state.jogadoresDinheiro[p];
@@ -1067,7 +1179,7 @@ window.venderAcao = function(a) {
 };
 
 window.comprarBem = function(b) {
-  const p   = state.jogador - 1;
+  const p   = state.vista - 1;
   const val = state.valorBem[b];
   if (state.jogadoresDinheiro[p] < val) { mostrarMensagem('Saldo insuficiente!', 'erro'); return; }
   const saldoAntes = state.jogadoresDinheiro[p];
@@ -1086,7 +1198,7 @@ window.comprarBem = function(b) {
 };
 
 window.devolverBem = function(b) {
-  const p      = state.jogador - 1;
+  const p      = state.vista - 1;
   if (state.jogadoresBens[p][b] <= 0) return;
   const refund = state.valorBem[b] * 0.5;
   const saldoAntes = state.jogadoresDinheiro[p];
@@ -1105,9 +1217,9 @@ window.devolverBem = function(b) {
 };
 
 window.emprestarDinheiro = function() {
-  const valor = parseFloat(prompt('Valor do empréstimo:') || 0);
+  const valor = parseFloat((prompt('Valor do empréstimo:') || '0').replace(',', '.'));
   if (!valor || valor <= 0) return;
-  const p = state.jogador - 1;
+  const p = state.vista - 1;
   const saldoAntes  = state.jogadoresDinheiro[p];
   const dividaAntes = state.jogadoresEmprestimos[p];
   state.jogadoresEmprestimos[p] += valor;
@@ -1123,10 +1235,10 @@ window.emprestarDinheiro = function() {
 };
 
 window.pagarEmprestimo = function() {
-  const p    = state.jogador - 1;
+  const p    = state.vista - 1;
   const deve = state.jogadoresEmprestimos[p];
   if (deve <= 0) { mostrarMensagem('Sem dívidas!', 'ok'); return; }
-  const valor = parseFloat(prompt(`Pagar quanto? (Deve: R$ ${fmt(deve)}):`) || 0);
+  const valor = parseFloat((prompt(`Pagar quanto? (Deve: R$ ${fmt(deve)}):`) || '0').replace(',', '.'));
   if (!valor || valor <= 0) return;
   const pago = Math.min(valor, state.jogadoresDinheiro[p]);
   const saldoAntes  = state.jogadoresDinheiro[p];
@@ -1186,6 +1298,7 @@ function _renderPainelAtivo() {
   else if (id === 'divBens')       renderBens();
   else if (id === 'divJogadores')  renderJogadores();
   else if (id === 'divRodadas')    renderResumo();
+  else if (id === 'divVariaveis')  carregarVariaveis();
 }
 
 export function mostrarPainel(id) {
@@ -1193,6 +1306,7 @@ export function mostrarPainel(id) {
   if (painelAtivo === 'divVariaveis' && id !== 'divVariaveis') {
     salvarVariaveis();
     if (state.jogador > state.qtJogadores) state.jogador = 1;
+    if (state.vista   > state.qtJogadores) state.vista   = state.jogador;
   }
 
   PAINEIS.forEach(p => {
@@ -1202,6 +1316,7 @@ export function mostrarPainel(id) {
 
   if (id === 'divCofrinhos')  renderCofrinhos();
   if (id === 'divAcoes')      renderAcoes();
+  if (id === 'divTabuleiro')  atualizarPosicoes();
   if (id === 'divBens')       renderBens();
   if (id === 'divJogadores')  renderJogadores();
   if (id === 'divRodadas')    renderResumo();
