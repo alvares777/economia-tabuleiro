@@ -288,7 +288,7 @@ export function renderCofrinhos() {
 const _ACAO_VANTAGEM = [
   '🏦 Saque o valor da casa atual sem mover (a cada 2 rod.)',
   '⚡ Dobra o dado ao rolar',
-  '🛡️ Cobre Emergências sem penalidade',
+  '🛡️ Cobre penalidades das casas Erro (15), Esc ruim (38) e Nunca Desista (59) — prejuízo zerado e valor acumulado como vantagem',
   '💧 Dividendo 20%/rod por ação',
   '📡 Dividendo 20%/rod por ação',
 ];
@@ -297,12 +297,17 @@ export function renderAcoes() {
   const tbody = document.getElementById('tbodyAcoes');
   if (!tbody) return;
   const p = state.vista - 1;
+  const divPorAcao = state.jogadoresDividendosPorAcao?.[p] || [];
   let html = '';
   state.nomesAcoes.forEach((nome, a) => {
     const qty  = state.jogadoresAcoes[p][a];
     const div  = state.dividendos[a];
     const val  = state.valorAcao[a];
     const vant = _ACAO_VANTAGEM[a] || '';
+    const acum = divPorAcao[a] || 0;
+    const acumHtml = acum > 0
+      ? `<span class="text-success fw-bold">R$ ${fmt(acum)}</span>`
+      : `<span class="text-muted">—</span>`;
     html += `
       <tr>
         <td>${nome}</td>
@@ -310,6 +315,7 @@ export function renderAcoes() {
         <td>${div}%</td>
         <td>${qty}</td>
         <td>R$ ${fmt(qty * val)}</td>
+        <td class="text-center">${acumHtml}</td>
         <td class="text-muted small">${vant}</td>
         <td>
           <button class="btn btn-sm btn-success" onclick="window.comprarAcao(${a})">+1</button>
@@ -350,10 +356,13 @@ window.mostrarInfoAcao = function(a) {
   bootstrap.Modal.getOrCreateInstance(document.getElementById('modalLegenda')).show();
 };
 
+const _BEM_LUCRO_LABEL = ['Renda', 'Econ. manutenção', 'Econ. aluguel', 'Renda'];
+
 export function renderBens() {
   const tbody = document.getElementById('tbodyBens');
   if (!tbody) return;
   const p = state.vista - 1;
+  const bensLucro = state.jogadoresBensLucro?.[p] || [0,0,0,0];
   let html = '';
   state.nomesBens.forEach((nome, b) => {
     const qty    = state.jogadoresBens[p][b];
@@ -361,6 +370,10 @@ export function renderBens() {
     const mnt    = state.despesaBem[b];
     const vmkt   = calcValorMercadoBem(b);
     const vant   = _BEM_VANTAGEM[b];
+    const lucro  = bensLucro[b] || 0;
+    const lucroHtml = lucro > 0
+      ? `<span class="text-success fw-bold">R$ ${fmt(lucro)}</span><br><span class="text-muted" style="font-size:0.75em">${_BEM_LUCRO_LABEL[b]}</span>`
+      : `<span class="text-muted">—</span>`;
     html += `
       <tr>
         <td>${nome}</td>
@@ -369,6 +382,7 @@ export function renderBens() {
         <td>${mnt}%</td>
         <td>${qty}</td>
         <td>R$ ${fmt(qty * val * mnt / 100)}/r</td>
+        <td class="text-center">${lucroHtml}</td>
         <td class="small text-info">${vant}</td>
         <td>
           <button class="btn btn-sm btn-success" onclick="window.comprarBem(${b})">Comprar</button>
@@ -377,6 +391,26 @@ export function renderBens() {
       </tr>`;
   });
   tbody.innerHTML = html;
+
+  // Imóveis do tabuleiro (casas de bônus que o jogador é dono)
+  const casasEl = document.getElementById('divCasasTabuleiro');
+  if (casasEl) {
+    const minhas = [];
+    (state.casasDonos || []).forEach((dono, pos) => { if (dono === p) minhas.push(pos); });
+    const aluguelTotal = (state.jogadoresCasasAluguel || [])[p] || 0;
+    if (minhas.length > 0) {
+      const lista = minhas.map(pos => `<span class="badge bg-secondary me-1">${getNomeCasa(pos)}</span>`).join('');
+      casasEl.innerHTML = `
+        <div class="alert alert-dark py-2 mb-0">
+          <div class="small text-light fw-bold mb-1">🏠 Imóveis no tabuleiro (${minhas.length}):</div>
+          <div class="mb-1">${lista}</div>
+          <div class="small">Aluguel recebido: <span class="text-success fw-bold">R$ ${fmt(aluguelTotal)}</span></div>
+        </div>`;
+      casasEl.style.display = '';
+    } else {
+      casasEl.style.display = 'none';
+    }
+  }
 }
 
 // ── Painel de Variáveis ───────────────────────────────────────────────────────

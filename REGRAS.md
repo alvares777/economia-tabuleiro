@@ -337,12 +337,12 @@ Para cada rodada r (em ordem cronológica):
 
 ### 10.1 Tabela de Bens
 
-| Bem | Valor (padrão) | Manutenção (padrão) | Vantagem durante o jogo |
-|-----|---------------|---------------------|------------------------|
-| 📱 Celular | R$ 10 | 10 %/rodada | +R$ 3 de renda passiva por rodada por unidade |
-| 🏍️ Moto | R$ 20 | 10 %/rodada | Reduz 25 % da manutenção de todos os bens (cap −50 % com 2+) |
-| 🚗 Carro | R$ 50 | 10 %/rodada | Reduz o aluguel pago em casas alheias: 1 carro = −30 %; 2+ = −50 % |
-| 🏠 Casa | R$ 100 | 10 %/rodada | +R$ 10 de renda passiva por rodada por unidade |
+| Bem | Valor (padrão) | Manutenção (padrão) | Vantagem durante o jogo | Lucro acumulado exibido |
+|-----|---------------|---------------------|------------------------|------------------------|
+| 📱 Celular | R$ 10 | 10 %/rodada | +R$ 3 de renda passiva por rodada por unidade | Total de renda recebida (R$3 × qty × turnos) |
+| 🏍️ Moto | R$ 20 | 10 %/rodada | Reduz 25 % da manutenção de todos os bens (cap −50 % com 2+) | Total poupado em manutenção (desconto acumulado) |
+| 🚗 Carro | R$ 50 | 10 %/rodada | Reduz o aluguel pago em casas alheias: 1 carro = −30 %; 2+ = −50 % | Total poupado em aluguel (desconto acumulado) |
+| 🏠 Casa | R$ 100 | 10 %/rodada | +R$ 10 de renda passiva por rodada por unidade | Total de renda recebida (R$10 × qty × turnos) |
 
 - **Custo por rodada** = `quantidade × valor_bem × manutenção%` (com desconto da Moto se aplicável)
 - Cobrado automaticamente ao clicar em **✅ FIM**.
@@ -357,6 +357,8 @@ A cada turno (ao clicar **✅ FIM**), antes dos dividendos de ações:
 - **Casa**: `quantidade × R$ 10` creditado automaticamente (analogia: aluguel de imóvel próprio)
 
 O evento é registrado no extrato como **📱 Renda de bens** com detalhamento por tipo.
+
+O acumulado histórico de cada vantagem monetária (renda, economias de manutenção e aluguel) é exibido em verde abaixo de cada bem no centro do tabuleiro e persiste entre sessões.
 
 ### 10.3 Vantagem da Moto — Desconto de Manutenção
 
@@ -429,6 +431,7 @@ Disponíveis apenas quando **"Ensina Ações"** está ativo.
 - O jogador pode comprar ou vender 1 ação por clique no painel **📈 Ações**.
 - **Correção de valor por rodada**: ao final de cada rodada completa (quando todos os jogadores passaram a vez), o valor de **todas as ações** é corrigido por `2 × Juros%`. Exemplo: Juros = 5 % → ações sobem 10 % por rodada.
 - **Bônus de Energia** ⚡: jogador que possuir ao menos 1 ação de **Energia** tem o **valor do dado automaticamente dobrado** em cada rolagem. Exemplo: dado mostra 3 → o jogador se move 6 casas e ganha `salário × 6` (ou `6 × salário × 3` em casa ESTRELA). O sistema exibe um aviso no modal de movimento.
+- **Bônus de Seguradora** 🛡️: jogador que possuir ao menos 1 ação de **Seguradora** tem o prejuízo zerado ao cair nas casas **Erro (15)**, **Esc ruim (38)** e **Nunca Desista (59)**. O valor que seria pago é acumulado na coluna "Dividendos recebidos" da guia Ações, mostrando o total poupado durante o jogo.
 - O operador pode ajustar o valor inicial de cada ação no painel **⚙️ Variáveis**.
 
 ---

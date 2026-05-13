@@ -256,11 +256,12 @@ function buildCentro() {
         <div class="centro-ativos-col">
           <div class="centro-ativos-label">Bens</div>
           <div class="centro-bens-grid">
-            <div class="centro-bem-cell centro-cell-clicavel" onclick="window.mostrarInfoBem(0)" title="Celular"><span class="centro-bem-ico">📱</span><span class="centro-bem-nome-s">Celular</span><span class="centro-bem-qtd" id="cbem0">—</span></div>
-            <div class="centro-bem-cell centro-cell-clicavel" onclick="window.mostrarInfoBem(1)" title="Moto"><span class="centro-bem-ico">🏍️</span><span class="centro-bem-nome-s">Moto</span><span class="centro-bem-qtd" id="cbem1">—</span></div>
-            <div class="centro-bem-cell centro-cell-clicavel" onclick="window.mostrarInfoBem(2)" title="Carro"><span class="centro-bem-ico">🚗</span><span class="centro-bem-nome-s">Carro</span><span class="centro-bem-qtd" id="cbem2">—</span></div>
-            <div class="centro-bem-cell centro-cell-clicavel" onclick="window.mostrarInfoBem(3)" title="Casa"><span class="centro-bem-ico">🏠</span><span class="centro-bem-nome-s">Casa</span><span class="centro-bem-qtd" id="cbem3">—</span></div>
+            <div class="centro-bem-cell centro-cell-clicavel" onclick="window.mostrarInfoBem(0)" title="Celular"><span class="centro-bem-ico">📱</span><span class="centro-bem-nome-s">Celular</span><span class="centro-bem-qtd" id="cbem0">—</span><span class="centro-bem-lucro" id="cbemL0"></span></div>
+            <div class="centro-bem-cell centro-cell-clicavel" onclick="window.mostrarInfoBem(1)" title="Moto"><span class="centro-bem-ico">🏍️</span><span class="centro-bem-nome-s">Moto</span><span class="centro-bem-qtd" id="cbem1">—</span><span class="centro-bem-lucro" id="cbemL1"></span></div>
+            <div class="centro-bem-cell centro-cell-clicavel" onclick="window.mostrarInfoBem(2)" title="Carro"><span class="centro-bem-ico">🚗</span><span class="centro-bem-nome-s">Carro</span><span class="centro-bem-qtd" id="cbem2">—</span><span class="centro-bem-lucro" id="cbemL2"></span></div>
+            <div class="centro-bem-cell centro-cell-clicavel" onclick="window.mostrarInfoBem(3)" title="Casa"><span class="centro-bem-ico">🏠</span><span class="centro-bem-nome-s">Casa</span><span class="centro-bem-qtd" id="cbem3">—</span><span class="centro-bem-lucro" id="cbemL3"></span></div>
           </div>
+          <div class="centro-casas-tab" id="centroCasasTab"></div>
         </div>
         <div class="centro-ativos-sep"></div>
         <div class="centro-ativos-col">
@@ -319,11 +320,29 @@ function _atualizarCentro() {
   }
 
   try {
-    const bens = state.jogadoresBens[p] || [];
+    const bens      = state.jogadoresBens[p]      || [];
+    const bensLucro = state.jogadoresBensLucro?.[p] || [0,0,0,0];
     [0,1,2,3].forEach(b => {
-      const el = document.getElementById(`cbem${b}`);
-      if (el) el.textContent = `×${bens[b] || 0}`;
+      const el  = document.getElementById(`cbem${b}`);
+      const elL = document.getElementById(`cbemL${b}`);
+      if (el)  el.textContent  = `×${bens[b] || 0}`;
+      if (elL) elL.textContent = bensLucro[b] > 0 ? `R$${_fmtR(bensLucro[b])}` : '';
     });
+  } catch { /* ignore */ }
+
+  try {
+    const casasEl = document.getElementById('centroCasasTab');
+    if (casasEl) {
+      const minhas = [];
+      (state.casasDonos || []).forEach((dono, pos) => { if (dono === p) minhas.push(pos); });
+      const aluguelTotal = (state.jogadoresCasasAluguel || [])[p] || 0;
+      if (minhas.length > 0) {
+        const nomesHtml = minhas.map(pos => getNomeCasa(pos)).join(', ');
+        casasEl.innerHTML = `🏠 <b>${minhas.length}</b> imóvel(s): <small>${nomesHtml}</small> · Aluguel: R$${_fmtR(aluguelTotal)}`;
+      } else {
+        casasEl.innerHTML = '';
+      }
+    }
   } catch { /* ignore */ }
 
   try {

@@ -99,6 +99,15 @@ function initState() {
   if (!state.jogadoresBancoUso || state.jogadoresBancoUso.length !== MAX_JOGADORES) {
     state.jogadoresBancoUso = Array(MAX_JOGADORES).fill(null);
   }
+  if (!state.jogadoresBensLucro || state.jogadoresBensLucro.length !== MAX_JOGADORES) {
+    state.jogadoresBensLucro = Array.from({ length: MAX_JOGADORES }, () => Array(MAX_BENS).fill(0));
+  }
+  if (!state.jogadoresCasasAluguel || state.jogadoresCasasAluguel.length !== MAX_JOGADORES) {
+    state.jogadoresCasasAluguel = Array(MAX_JOGADORES).fill(0);
+  }
+  if (!state.jogadoresDividendosPorAcao || state.jogadoresDividendosPorAcao.length !== MAX_JOGADORES) {
+    state.jogadoresDividendosPorAcao = Array.from({ length: MAX_JOGADORES }, () => Array(MAX_ACOES).fill(0));
+  }
   // Sincroniza a vista com o jogador ativo ao iniciar
   state.vista = state.jogador;
 }
@@ -208,6 +217,9 @@ function toTabuleiroPayload() {
     emiteSom:        state.emiteSom,
     casasDonos:      JSON.stringify(state.casasDonos),
     bancoUso:        JSON.stringify(state.jogadoresBancoUso),
+    bensLucro:         JSON.stringify(state.jogadoresBensLucro),
+    casasAluguel:      JSON.stringify(state.jogadoresCasasAluguel),
+    dividendosPorAcao: JSON.stringify(state.jogadoresDividendosPorAcao),
   };
 }
 
@@ -326,6 +338,15 @@ function fromLoadResponse(data) {
   try {
     state.jogadoresBancoUso = JSON.parse(t.ao_banco_uso || 'null') || Array(MAX_JOGADORES).fill(null);
   } catch { state.jogadoresBancoUso = Array(MAX_JOGADORES).fill(null); }
+  try {
+    state.jogadoresBensLucro = JSON.parse(t.ao_bens_lucro || 'null') || null;
+  } catch { state.jogadoresBensLucro = null; }
+  try {
+    state.jogadoresCasasAluguel = JSON.parse(t.ao_casas_aluguel || 'null') || null;
+  } catch { state.jogadoresCasasAluguel = null; }
+  try {
+    state.jogadoresDividendosPorAcao = JSON.parse(t.ao_dividendos_acoes || 'null') || null;
+  } catch { state.jogadoresDividendosPorAcao = null; }
 
   initState();
 

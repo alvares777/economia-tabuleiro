@@ -79,13 +79,13 @@ async function saveGame(req, res, next) {
         pe_acao1, pe_acao2, pe_acao3, pe_acao4, pe_acao5,
         vl_acao1, vl_acao2, vl_acao3, vl_acao4, vl_acao5,
         nr_proximapergunta, ao_tipodado, ao_som, pe_rendimento, ao_ensina_acoes,
-        ao_casas_donos, ao_banco_uso
+        ao_casas_donos, ao_banco_uso, ao_bens_lucro, ao_casas_aluguel, ao_dividendos_acoes
       ) VALUES (
         COALESCE($1::uuid, gen_random_uuid()), $2, NOW(),
         $3,$4,$5,$6,$7,$8,$9,$10,$11,
         $12,$13,$14,$15,$16,$17,$18,$19,
         $20,$21,$22,$23,$24,$25,$26,$27,$28,$29,
-        $30,$31,$32,$33,$34,$35,$36
+        $30,$31,$32,$33,$34,$35,$36,$37,$38,$39
       )
       ON CONFLICT (game_id) DO UPDATE SET
         saved_at           = NOW(),
@@ -114,7 +114,10 @@ async function saveGame(req, res, next) {
         pe_rendimento      = EXCLUDED.pe_rendimento,
         ao_ensina_acoes    = EXCLUDED.ao_ensina_acoes,
         ao_casas_donos     = EXCLUDED.ao_casas_donos,
-        ao_banco_uso       = EXCLUDED.ao_banco_uso
+        ao_banco_uso       = EXCLUDED.ao_banco_uso,
+        ao_bens_lucro        = EXCLUDED.ao_bens_lucro,
+        ao_casas_aluguel     = EXCLUDED.ao_casas_aluguel,
+        ao_dividendos_acoes  = EXCLUDED.ao_dividendos_acoes
       RETURNING game_id
     `;
 
@@ -129,8 +132,11 @@ async function saveGame(req, res, next) {
       t.valorAcao[0],  t.valorAcao[1],  t.valorAcao[2],  t.valorAcao[3],  t.valorAcao[4],
       t.proximaPergunta, t.tipoDado, t.emiteSom,
       t.rendimento || 10, t.ensinaAcoes || 'N',
-      t.casasDonos || null,
-      t.bancoUso   || null,
+      t.casasDonos         || null,
+      t.bancoUso           || null,
+      t.bensLucro          || null,
+      t.casasAluguel       || null,
+      t.dividendosPorAcao  || null,
     ]);
 
     const newGameId = tabResult.rows[0].game_id;

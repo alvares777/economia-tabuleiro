@@ -637,6 +637,20 @@ body {
   color: rgba(255,200,100,0.9);
   line-height: 1.2;
 }
+.centro-bem-lucro {
+  font-size: clamp(0.33rem, 0.85vmin, 0.8rem);
+  font-weight: 600;
+  color: #66bb6a;
+  line-height: 1;
+  min-height: 0.8em;
+}
+.centro-casas-tab {
+  font-size: clamp(0.48rem, 0.95vmin, 0.75rem);
+  color: rgba(180,220,255,0.75);
+  text-align: center;
+  padding: 2px 1px;
+  line-height: 1.35;
+}
 
 /* ── Navbar ─────────────────────────────────────────────────── */
 .navbar-brand { font-weight: 700; font-size: 0.9rem; }

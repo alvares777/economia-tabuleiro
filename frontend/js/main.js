@@ -780,6 +780,11 @@ function processarCasa(p, dadoValor = 0) {
         const saldoAntesDono = state.jogadoresDinheiro[dono];
         state.jogadoresDinheiro[p]    -= aluguel;
         state.jogadoresDinheiro[dono] += aluguel;
+        state.jogadoresCasasAluguel[dono] = (state.jogadoresCasasAluguel[dono] || 0) + aluguel;
+        if (qtdCarros > 0) {
+          const carroEconomia = Math.round(dadoValor * (1 - fatorAluguel) * 100) / 100;
+          state.jogadoresBensLucro[p][2] = (state.jogadoresBensLucro[p][2] || 0) + carroEconomia;
+        }
         const descontoInfo = qtdCarros > 0 ? ` 🚗 desc.${qtdCarros >= 2 ? '50' : '30'}%` : '';
         _registrarEvento(p, 'ALUGUEL_PAGO', {
           descricao: `🏠 Aluguel (casa ${pos} — ${nome}): -R$${fmt(aluguel)}${descontoInfo} → ${nomeDono}`,
@@ -793,12 +798,24 @@ function processarCasa(p, dadoValor = 0) {
         tocarSom('ruim');
       }
     } else {
-      // Penalidades podem deixar saldo negativo
-      state.jogadoresDinheiro[p] -= val;
-      const pago = saldoAntes - state.jogadoresDinheiro[p];
-      _registrarEvento(p, 'PENALIDADE_CASA', { descricao: `${nome} (casa ${pos}): -R$${fmt(pago)}`, valor: -pago, saldoAntes });
-      bonusTexto = `😢 ${nome}<br>Pagou: <strong>R$ ${fmt(val)}</strong>${_alertaSaldoNeg(p)}`;
-      tocarSom('ruim');
+      // Penalidades — Seguradora (ação índice 2) cobre casas 15, 38 e 59
+      const _CASAS_SEGURADORA = [15, 38, 59];
+      if (_CASAS_SEGURADORA.includes(pos) && (state.jogadoresAcoes[p][2] || 0) > 0) {
+        state.jogadoresDividendosPorAcao[p][2] = (state.jogadoresDividendosPorAcao[p][2] || 0) + val;
+        _registrarEvento(p, 'PENALIDADE_CASA', {
+          descricao: `🛡️ ${nome} (casa ${pos}): prejuízo R$${fmt(val)} coberto pela Seguradora`,
+          valor: 0, saldoAntes,
+        });
+        bonusTexto = `🛡️ ${nome}<br>Prejuízo de <strong>R$ ${fmt(val)}</strong> coberto pela <strong>Seguradora!</strong>`;
+        tocarSom('bom');
+      } else {
+        // Penalidades podem deixar saldo negativo
+        state.jogadoresDinheiro[p] -= val;
+        const pago = saldoAntes - state.jogadoresDinheiro[p];
+        _registrarEvento(p, 'PENALIDADE_CASA', { descricao: `${nome} (casa ${pos}): -R$${fmt(pago)}`, valor: -pago, saldoAntes });
+        bonusTexto = `😢 ${nome}<br>Pagou: <strong>R$ ${fmt(val)}</strong>${_alertaSaldoNeg(p)}`;
+        tocarSom('ruim');
+      }
     }
   }
 
@@ -1008,6 +1025,8 @@ function cobrarCustosBens() {
     const qtdMotos   = state.jogadoresBens[p][1] || 0;
     const descMoto   = Math.min(0.5, qtdMotos * 0.25);
     const totalFinal = Math.round(total * (1 - descMoto) * 100) / 100;
+    const motoEconomia = Math.round((total - totalFinal) * 100) / 100;
+    if (motoEconomia > 0) state.jogadoresBensLucro[p][1] = (state.jogadoresBensLucro[p][1] || 0) + motoEconomia;
     const saldoAntes = state.jogadoresDinheiro[p];
     state.jogadoresDinheiro[p] = Math.max(0, state.jogadoresDinheiro[p] - totalFinal);
     const pago = saldoAntes - state.jogadoresDinheiro[p];
@@ -1045,6 +1064,8 @@ function receberRendaBens() {
   const rendaCASA = qtdCASA * 10;
   const total = rendaCEL + rendaCASA;
   if (total > 0) {
+    if (rendaCEL  > 0) state.jogadoresBensLucro[p][0] = (state.jogadoresBensLucro[p][0] || 0) + rendaCEL;
+    if (rendaCASA > 0) state.jogadoresBensLucro[p][3] = (state.jogadoresBensLucro[p][3] || 0) + rendaCASA;
     const saldoAntes = state.jogadoresDinheiro[p];
     state.jogadoresDinheiro[p] += total;
     const partes = [];
@@ -1068,6 +1089,7 @@ function receberDividendos() {
     if (qty > 0 && taxa > 0) {
       const val = qty * (taxa / 100) * state.valorAcao[a];
       total += val;
+      state.jogadoresDividendosPorAcao[p][a] = (state.jogadoresDividendosPorAcao[p][a] || 0) + val;
       partes.push(`${state.nomesAcoes[a]} ${qty}×${taxa}%: +R$${fmt(val)}`);
     }
   }
