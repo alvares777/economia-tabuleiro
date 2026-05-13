@@ -55,7 +55,8 @@ CREATE TABLE IF NOT EXISTS economia_tabuleiro (
   ao_tipodado         SMALLINT NOT NULL DEFAULT 0,
   ao_som              SMALLINT NOT NULL DEFAULT 1,
   pe_rendimento       NUMERIC(5,2) NOT NULL DEFAULT 10,
-  ao_ensina_acoes     CHAR(1) NOT NULL DEFAULT 'N'
+  ao_ensina_acoes     CHAR(1) NOT NULL DEFAULT 'N',
+  ao_casas_donos      TEXT
 );
 
 CREATE INDEX idx_tabuleiro_user_saved
@@ -97,13 +98,14 @@ CREATE TABLE IF NOT EXISTS economia_jogadores (
   id          BIGSERIAL PRIMARY KEY,
   game_id     UUID NOT NULL REFERENCES economia_tabuleiro(game_id) ON DELETE CASCADE,
   user_id     INTEGER NOT NULL DEFAULT 1,
-  nr_jogador  SMALLINT NOT NULL,
-  no_jogador  VARCHAR(100) NOT NULL DEFAULT '',
-  vl_dinheiro NUMERIC(12,2) NOT NULL DEFAULT 0,
-  vl_deve     NUMERIC(12,2) NOT NULL DEFAULT 0,
-  nr_posicao  SMALLINT NOT NULL DEFAULT 0,
-  ao_presente CHAR(1) NOT NULL DEFAULT 'S',
-  sys_user_id INTEGER REFERENCES economia_usuarios(id) ON DELETE SET NULL
+  nr_jogador    SMALLINT NOT NULL,
+  no_jogador    VARCHAR(100) NOT NULL DEFAULT '',
+  vl_dinheiro   NUMERIC(12,2) NOT NULL DEFAULT 0,
+  vl_deve       NUMERIC(12,2) NOT NULL DEFAULT 0,
+  nr_posicao    SMALLINT NOT NULL DEFAULT 0,
+  ao_presente   CHAR(1) NOT NULL DEFAULT 'S',
+  sys_user_id   INTEGER REFERENCES economia_usuarios(id) ON DELETE SET NULL,
+  no_personagem TEXT
 );
 CREATE INDEX idx_jogadores_game ON economia_jogadores(game_id);
 
