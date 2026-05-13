@@ -676,6 +676,105 @@ body.login-page {
 
 /* ── Seletor de personagem ──────────────────────────────────── */
 
+.btn-avatar-picker {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border: 2px solid rgba(255,255,255,0.15);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.04);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px;
+  transition: 0.15s;
+}
+.btn-avatar-picker:hover {
+  border-color: rgba(0,170,255,0.5);
+  background: rgba(0,170,255,0.08);
+}
+
+.seletor-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+.seletor-personagem-popup {
+  background: #161b27;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 16px;
+  padding: 20px;
+  width: min(94vw, 600px);
+  max-height: 92vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.75);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.15) transparent;
+}
+.seletor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.85);
+}
+.seletor-header button {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.35);
+  cursor: pointer;
+  font-size: 18px;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.seletor-header button:hover { color: #fff; }
+.seletor-secao-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  margin: 12px 0 7px;
+}
+.seletor-secao-label:first-of-type { margin-top: 0; }
+.seletor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+  gap: 6px;
+}
+.seletor-grid .btn-personagem {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  font-size: 28px;
+}
+.seletor-footer {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.btn-remover-avatar {
+  width: 100%;
+  background: rgba(255,80,80,0.08);
+  border: 1px solid rgba(255,80,80,0.25);
+  color: #f99;
+  border-radius: 8px;
+  font-size: 13px;
+  padding: 8px;
+  cursor: pointer;
+  transition: 0.15s;
+}
+.btn-remover-avatar:hover { background: rgba(255,80,80,0.18); }
+
 .btn-personagem {
   width: 34px;
   height: 34px;
@@ -691,10 +790,9 @@ body.login-page {
   padding: 0;
   line-height: 1;
 }
-.btn-personagem:hover  { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.3); }
-.btn-personagem.ativo  { border-color: #00aaff; background: rgba(0,170,255,0.15); transform: scale(1.15); }
-.btn-personagem.remover { font-size: 14px; color: #f66; border-color: #f66; }
-.btn-personagem img    { width: 100%; height: 100%; object-fit: cover; border-radius: 3px; display: block; }
+.btn-personagem:hover  { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.25); }
+.btn-personagem.ativo  { border-color: #00aaff; background: rgba(0,170,255,0.18); box-shadow: 0 0 6px rgba(0,170,255,0.3); }
+.btn-personagem img    { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; display: block; }
 
 /* ── Pião viajante (animação de movimento no tabuleiro) ─────── */
 

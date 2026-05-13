@@ -3,6 +3,18 @@
 import { state, calcNetWorth, calcRanking, calcCofrinho, salarioDaRodada, calcValorMercadoBem } from './state.js';
 import { getNomeCasa, COR_JOGADOR } from './board.js';
 
+const _PERSONAGENS = ['🧙','🦸','🤖','👽','🧛','🧝','🐱','🐵','🦊','🐸','👻','💀'];
+const _ICONS = [
+  'icons/menina01.png','icons/menina02.png','icons/menina03.png','icons/menina04.png',
+  'icons/menina05.png','icons/menina06.png','icons/menina07.png','icons/menina08.png',
+  'icons/menina09.png','icons/menina010.png','icons/menina011.png','icons/menina012.png',
+  'icons/menino01.png','icons/menino02.png','icons/menino03.png','icons/menino04.png',
+  'icons/menino05.png','icons/menino06.png','icons/menino07.png','icons/menino08.png',
+  'icons/menino09.png','icons/menino010.png','icons/menino011.png','icons/menino012.png',
+  'icons/kaique.png','icons/kaique-cruz.png','icons/kaique-grafico.png',
+  'icons/tioPatinhas.png',
+];
+
 const SONS = {
   moeda:    'audio/button-8.mp3',
   bom:      'audio/button-5.mp3',
@@ -168,49 +180,35 @@ export function renderJogadores() {
       ? `<img src="${foto}" style="width:24px;height:24px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,0.5);" class="me-1">`
       : '';
 
-    const _PERSONAGENS = ['🧙','🦸','🤖','👽','🧛','🧝','🐱','🐵','🦊','🐸','👻','💀'];
-    const _ICONS = [
-      'icons/menina01.png','icons/menina02.png','icons/menina03.png','icons/menina04.png',
-      'icons/menina05.png','icons/menina06.png','icons/menina07.png','icons/menina08.png',
-      'icons/menina09.png','icons/menina010.png','icons/menina011.png','icons/menina012.png',
-      'icons/menino01.png','icons/menino02.png','icons/menino03.png','icons/menino04.png',
-      'icons/menino05.png','icons/menino06.png','icons/menino07.png','icons/menino08.png',
-      'icons/menino09.png','icons/menino010.png','icons/menino011.png','icons/menino012.png',
-      'icons/kaique.png','icons/kaique-cruz.png','icons/kaique-grafico.png',
-      'icons/tioPatinhas.png',
-    ];
-    const personagemBtns = _PERSONAGENS.map(em =>
-      `<button class="btn-personagem ${personagem === em ? 'ativo' : ''}"
-               title="${em}" onclick="window.selecionarPersonagem(${p},'${em}')">${em}</button>`
-    ).join('');
-    const iconBtns = _ICONS.map(path => {
-      const nome = path.replace('icons/','').replace(/\.[^.]+$/,'');
-      return `<button class="btn-personagem ${personagem === path ? 'ativo' : ''}"
-                title="${nome}" onclick="window.selecionarPersonagem(${p},'${path}')">` +
-        `<img src="${path}" alt="${nome}" style="width:100%;height:100%;object-fit:cover;border-radius:3px;display:block;"></button>`;
-    }).join('');
-    const removerBtn = personagem
-      ? `<button class="btn-personagem remover" title="Remover personagem"
-                 onclick="window.selecionarPersonagem(${p},null)">✖</button>`
-      : '';
+    const avatarPreview = personagem
+      ? (personagem.includes('/')
+         ? `<img src="${personagem}" style="width:26px;height:26px;object-fit:cover;border-radius:4px;display:block;">`
+         : `<span style="font-size:20px;line-height:1;">${personagem}</span>`)
+      : foto
+        ? `<img src="${foto}" style="width:26px;height:26px;object-fit:cover;border-radius:50%;display:block;">`
+        : `<span style="font-size:18px;opacity:0.35;">🎭</span>`;
 
     html += `
       <tr class="${classeRow} ${!presente ? 'opacity-50' : ''}">
         <td>${medal} ${p + 1}</td>
         <td>
-          <div class="d-flex align-items-center gap-1 flex-wrap">
-            ${fotoHtml}
-            <input class="form-control form-control-sm" value="${state.jogadores[p]}"
-                   ${sysId ? 'readonly style="background:#0d1117;cursor:default"' : ''}
-                   onchange="window.renomearJogador(${p}, this.value)">
+          <div class="d-flex align-items-center gap-2">
+            <button class="btn-avatar-picker" onclick="window.abrirSeletorPersonagem(${p})"
+                    title="Escolher personagem">${avatarPreview}</button>
+            <div class="flex-grow-1">
+              <div class="d-flex align-items-center gap-1">
+                ${fotoHtml}
+                <input class="form-control form-control-sm" value="${state.jogadores[p]}"
+                       ${sysId ? 'readonly style="background:#0d1117;cursor:default"' : ''}
+                       onchange="window.renomearJogador(${p}, this.value)">
+              </div>
+              <select class="form-select form-select-sm mt-1"
+                      onchange="window.selecionarUsuarioSistema(${p}, this.value)">
+                <option value="" ${!sysId ? 'selected' : ''}>— Avulso —</option>
+                ${userOptions}
+              </select>
+            </div>
           </div>
-          <select class="form-select form-select-sm mt-1"
-                  onchange="window.selecionarUsuarioSistema(${p}, this.value)">
-            <option value="" ${!sysId ? 'selected' : ''}>— Avulso —</option>
-            ${userOptions}
-          </select>
-          <div class="d-flex flex-wrap gap-1 mt-1">${personagemBtns}${removerBtn}</div>
-          <div class="d-flex flex-wrap gap-1 mt-1" style="max-height:90px;overflow-y:auto;border-top:1px solid rgba(255,255,255,0.12);padding-top:3px;">${iconBtns}</div>
         </td>
         <td>R$ ${fmt(state.jogadoresDinheiro[p])}</td>
         <td>R$ ${fmt(state.jogadoresEmprestimos[p])}</td>
@@ -580,3 +578,50 @@ export function renderResumo() {
   html += '</tbody></table></div>';
   container.innerHTML = html;
 }
+
+window.abrirSeletorPersonagem = function(p) {
+  const existing = document.getElementById('seletor-backdrop');
+  if (existing) {
+    const same = existing.dataset.jogador == p;
+    existing.remove();
+    if (same) return;
+  }
+
+  const personagem = state.jogadoresPersonagem?.[p];
+  const nomeJogador = state.jogadores[p] || `Jogador ${p + 1}`;
+
+  const emojisBtns = _PERSONAGENS.map(em =>
+    `<button class="btn-personagem ${personagem === em ? 'ativo' : ''}"
+             onclick="window.selecionarPersonagem(${p},'${em}')"
+             title="${em}">${em}</button>`
+  ).join('');
+
+  const iconsBtns = _ICONS.map(path => {
+    const nome = path.replace('icons/','').replace(/\.[^.]+$/,'');
+    return `<button class="btn-personagem ${personagem === path ? 'ativo' : ''}"
+                    onclick="window.selecionarPersonagem(${p},'${path}')"
+                    title="${nome}"><img src="${path}" alt="${nome}"></button>`;
+  }).join('');
+
+  const backdrop = document.createElement('div');
+  backdrop.id = 'seletor-backdrop';
+  backdrop.dataset.jogador = p;
+  backdrop.className = 'seletor-backdrop';
+  backdrop.innerHTML = `
+    <div class="seletor-personagem-popup" onclick="event.stopPropagation()">
+      <div class="seletor-header">
+        <span>Escolher personagem para ${nomeJogador}</span>
+        <button onclick="document.getElementById('seletor-backdrop').remove()" title="Fechar">✕</button>
+      </div>
+      <div class="seletor-secao-label">Emojis</div>
+      <div class="seletor-grid">${emojisBtns}</div>
+      <div class="seletor-secao-label">Personagens</div>
+      <div class="seletor-grid">${iconsBtns}</div>
+      ${personagem ? `<div class="seletor-footer">
+        <button class="btn-remover-avatar" onclick="window.selecionarPersonagem(${p},null)">✖ Remover personagem</button>
+      </div>` : ''}
+    </div>
+  `;
+  document.body.appendChild(backdrop);
+  backdrop.addEventListener('click', () => backdrop.remove());
+};

@@ -1147,6 +1147,7 @@ window.selecionarUsuarioSistema = function(p, userId) {
 };
 
 window.selecionarPersonagem = function(p, emoji) {
+  document.getElementById('seletor-backdrop')?.remove();
   state.jogadoresPersonagem[p] = emoji || null;
   renderJogadores();
   atualizarPosicoes();
