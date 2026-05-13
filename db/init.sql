@@ -56,7 +56,8 @@ CREATE TABLE IF NOT EXISTS economia_tabuleiro (
   ao_som              SMALLINT NOT NULL DEFAULT 1,
   pe_rendimento       NUMERIC(5,2) NOT NULL DEFAULT 10,
   ao_ensina_acoes     CHAR(1) NOT NULL DEFAULT 'N',
-  ao_casas_donos      TEXT
+  ao_casas_donos      TEXT,
+  ao_banco_uso        TEXT
 );
 
 CREATE INDEX idx_tabuleiro_user_saved
