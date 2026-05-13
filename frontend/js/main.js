@@ -123,6 +123,7 @@ async function init() {
   atualizarIndicadores();
   renderJogadores();
   mostrarPainel('divTabuleiro');
+  if (!state.fim) _iniciarCronometro(state.tempo * 60);
 }
 
 function _renderNavPerfil(user) {
@@ -143,6 +144,82 @@ async function carregarPartida(gameId) {
   localStorage.setItem('economia_last_game', gameId);
   renderTabuleiro();
   atualizarIndicadores();
+  if (!state.fim) _iniciarCronometro(state.tempo * 60);
+}
+
+// ── Cronômetro ────────────────────────────────────────────────────────────────
+
+let _cronoInterval = null;
+let _cronoTotal    = 0;
+let _cronoRestante = 0;
+
+function _cronoFmt(seg) {
+  const m = Math.floor(seg / 60);
+  const s = seg % 60;
+  return `⏱ ${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+function _cronoAplicarAlerta(restante, total) {
+  const el    = document.getElementById('cronometro');
+  const frame = document.querySelector('.tabuleiro-frame');
+  const pct   = total > 0 ? restante / total : 1;
+  el?.classList.remove('cronometro-amarelo', 'cronometro-vermelho');
+  frame?.classList.remove('alerta-amarelo', 'alerta-vermelho');
+  if (pct <= 0.10) {
+    const min = Math.ceil(restante / 60);
+    el?.setAttribute('title', `Faltam apenas ${min} minuto${min !== 1 ? 's' : ''} para encerrar automaticamente a partida`);
+    el?.classList.add('cronometro-vermelho');
+    frame?.classList.add('alerta-vermelho');
+  } else if (pct <= 0.25) {
+    const min = Math.ceil(restante / 60);
+    el?.setAttribute('title', `Faltam apenas ${min} minuto${min !== 1 ? 's' : ''} para encerrar automaticamente a partida`);
+    el?.classList.add('cronometro-amarelo');
+    frame?.classList.add('alerta-amarelo');
+  } else {
+    el?.removeAttribute('title');
+  }
+}
+
+function _cronoTick() {
+  if (state.fim) { _pararCronometro(); return; }
+  _cronoRestante--;
+  const el = document.getElementById('cronometro');
+  if (el) el.textContent = _cronoFmt(_cronoRestante);
+  _cronoAplicarAlerta(_cronoRestante, _cronoTotal);
+  if (_cronoRestante <= 0) {
+    _pararCronometro();
+    const prorrogar = confirm('⏰ O tempo acabou!\n\nDeseja prorrogar o jogo por mais 10 minutos?');
+    if (prorrogar) {
+      state.tempo += 10;
+      agendarAutoSave();
+      _iniciarCronometro(10 * 60);
+    } else {
+      state.fim = true;
+      tocarSom('fim');
+      mostrarMensagem('⏰ Tempo esgotado!<br>🏆 Fim de jogo!<br>Verifique o ranking final no painel Resumo.', 'ok');
+      _setEsperandoProximo(false);
+      renderResumo();
+      mostrarPainel('divRodadas');
+      agendarAutoSave();
+    }
+  }
+}
+
+function _pararCronometro() {
+  clearInterval(_cronoInterval);
+  _cronoInterval = null;
+  document.getElementById('cronometro')?.classList.remove('cronometro-amarelo', 'cronometro-vermelho');
+  document.querySelector('.tabuleiro-frame')?.classList.remove('alerta-amarelo', 'alerta-vermelho');
+}
+
+function _iniciarCronometro(segInicial) {
+  _pararCronometro();
+  _cronoTotal    = segInicial;
+  _cronoRestante = segInicial;
+  const el = document.getElementById('cronometro');
+  if (el) el.textContent = _cronoFmt(_cronoRestante);
+  _cronoAplicarAlerta(_cronoRestante, _cronoTotal);
+  _cronoInterval = setInterval(_cronoTick, 1000);
 }
 
 // ── Auto-save ─────────────────────────────────────────────────────────────────
@@ -861,6 +938,7 @@ window.proximoJogador = function() {
     state.valorAcao = state.valorAcao.map(v => Math.round(v * fatorAcao * 100) / 100);
     if (state.rodada > state.rodadas) {
       state.fim = true;
+      _pararCronometro();
       tocarSom('fim');
       mostrarMensagem('🏆 Fim de jogo!<br>Verifique o ranking final no painel Resumo.', 'ok');
     }

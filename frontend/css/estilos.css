@@ -472,6 +472,60 @@ body {
   user-select: none;
 }
 
+/* ── Cronômetro ─────────────────────────────────────────────── */
+.cronometro {
+  font-family: monospace;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.75);
+  padding: 3px 9px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  white-space: nowrap;
+  cursor: default;
+  transition: border-color 0.4s, color 0.4s, box-shadow 0.4s;
+}
+
+.cronometro.cronometro-amarelo {
+  border-color: #ffd700;
+  color: #ffd700;
+  box-shadow: 0 0 10px rgba(255,215,0,0.35);
+}
+
+.cronometro.cronometro-vermelho {
+  border-color: #ff4444;
+  color: #ff6b6b;
+  box-shadow: 0 0 10px rgba(255,68,68,0.45);
+  animation: piscar-crono 1s ease-in-out infinite;
+}
+
+@keyframes piscar-crono {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.55; }
+}
+
+/* Borda de alerta no tabuleiro */
+.tabuleiro-frame.alerta-amarelo {
+  box-shadow:
+    4px 4px 0 rgba(100,60,0,0.5),
+    0 0 0 4px #ffd700,
+    0 0 28px rgba(255,215,0,0.35);
+  transition: box-shadow 0.4s;
+}
+
+.tabuleiro-frame.alerta-vermelho {
+  box-shadow:
+    4px 4px 0 rgba(100,60,0,0.5),
+    0 0 0 4px #ff4444,
+    0 0 28px rgba(255,68,68,0.4);
+  animation: piscar-borda 1.2s ease-in-out infinite;
+}
+
+@keyframes piscar-borda {
+  0%, 100% { box-shadow: 4px 4px 0 rgba(100,60,0,0.5), 0 0 0 4px #ff4444, 0 0 28px rgba(255,68,68,0.4); }
+  50%       { box-shadow: 4px 4px 0 rgba(100,60,0,0.5), 0 0 0 4px #ff7777, 0 0 48px rgba(255,68,68,0.65); }
+}
+
 /* ── Centro: ranking ────────────────────────────────────────── */
 .centro-ranking {
   font-size: clamp(0.62rem, 1.25vmin, 1.5rem);
