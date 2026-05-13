@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Economia dos Milionários</title>
+  <link rel="stylesheet" href="css/intro.css">
+</head>
+<body>
+
+<div id="intro">
+
+  <div id="luxo"></div>
+
+  <button id="pular">⏩ Pular Intro</button>
+
+  <div id="titulo">ECONOMIA DOS MILIONÁRIOS</div>
+
+  <div id="subtitulo">Estratégia e uma pitada de sorte dominará o jogo.</div>
+
+  <div id="cofre">
+    <div id="porta"></div>
+  </div>
+
+  <div id="patinhas">
+    <img src="img/tioPatinhas.png" alt="Tio Patinhas">
+  </div>
+
+</div>
+
+<!-- Som de moeda (pixabay — livre para uso) -->
+<audio id="coinSound" preload="auto">
+  <source src="https://cdn.pixabay.com/audio/2022/03/15/audio_c8c8a73467.mp3" type="audio/mpeg">
+</audio>
+
+<!-- GSAP -->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+
+<!-- Verificação de autenticação (antes da animação) -->
+<script type="module">
+  import { isLoggedIn } from './js/auth.js';
+  if (!isLoggedIn()) window.location.href = '/login.html';
+</script>
+
+<!-- Animação (script regular — depende de GSAP global) -->
+<script src="js/intro.js" defer></script>
+
+</body>
+</html>

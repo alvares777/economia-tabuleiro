@@ -2,6 +2,18 @@
 -- ECONOMIA DOS MILIONÁRIOS — Schema PostgreSQL
 -- ============================================================
 
+-- ── Usuários ──────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS economia_usuarios (
+  id        SERIAL PRIMARY KEY,
+  nome      VARCHAR(100) NOT NULL,
+  email     VARCHAR(150) NOT NULL UNIQUE,
+  senha     VARCHAR(100) NOT NULL,
+  tipo      CHAR(1) NOT NULL DEFAULT 'C',     -- C=Comum, A=Administrador
+  situacao  CHAR(1) NOT NULL DEFAULT 'I',     -- A=Ativo, I=Inativo
+  foto      TEXT                               -- base64 data URL
+);
+CREATE INDEX IF NOT EXISTS idx_usuarios_email ON economia_usuarios(email);
+
 CREATE TABLE IF NOT EXISTS economia_tabuleiro (
   game_id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id             INTEGER NOT NULL DEFAULT 1,
@@ -90,7 +102,8 @@ CREATE TABLE IF NOT EXISTS economia_jogadores (
   vl_dinheiro NUMERIC(12,2) NOT NULL DEFAULT 0,
   vl_deve     NUMERIC(12,2) NOT NULL DEFAULT 0,
   nr_posicao  SMALLINT NOT NULL DEFAULT 0,
-  ao_presente CHAR(1) NOT NULL DEFAULT 'S'
+  ao_presente CHAR(1) NOT NULL DEFAULT 'S',
+  sys_user_id INTEGER REFERENCES economia_usuarios(id) ON DELETE SET NULL
 );
 CREATE INDEX idx_jogadores_game ON economia_jogadores(game_id);
 
@@ -99,6 +112,34 @@ CREATE TABLE IF NOT EXISTS economia_perguntas (
   pergunta  TEXT NOT NULL,
   resposta  TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS economia_extrato (
+  id             BIGSERIAL PRIMARY KEY,
+  game_id        UUID NOT NULL REFERENCES economia_tabuleiro(game_id) ON DELETE CASCADE,
+  user_id        INTEGER NOT NULL DEFAULT 1,
+  jogador        SMALLINT NOT NULL,
+  rodada         SMALLINT NOT NULL,
+  seq            INTEGER NOT NULL DEFAULT 0,
+  tipo           VARCHAR(30) NOT NULL,
+  descricao      TEXT,
+  valor          NUMERIC(12,2) NOT NULL DEFAULT 0,
+  dado_valor     SMALLINT,
+  pergunta_id    SMALLINT,
+  acertou        BOOLEAN,
+  cofrinho_idx   SMALLINT,
+  bem_idx        SMALLINT,
+  acao_idx       SMALLINT,
+  salario_rodada NUMERIC(12,2),
+  pe_juros       NUMERIC(5,2),
+  pe_rendimento  NUMERIC(5,2),
+  pe_impostos    NUMERIC(5,2),
+  vl_incremento  NUMERIC(12,2),
+  saldo_antes    NUMERIC(12,2) NOT NULL DEFAULT 0,
+  saldo_depois   NUMERIC(12,2) NOT NULL DEFAULT 0,
+  divida_antes   NUMERIC(12,2) NOT NULL DEFAULT 0,
+  divida_depois  NUMERIC(12,2) NOT NULL DEFAULT 0
+);
+CREATE INDEX idx_extrato_game ON economia_extrato(game_id, jogador, rodada);
 
 -- ============================================================
 -- SEED: 38 perguntas (extraídas do ECONOMIA_TABULEIRO_PCK.pck)

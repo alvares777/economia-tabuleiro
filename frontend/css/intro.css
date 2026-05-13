@@ -1,0 +1,161 @@
+/* ── Intro Economia dos Milionários ─────────────────────────────────── */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  overflow: hidden;
+  background: #000;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Cena principal */
+#intro {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(circle at center, #222 0%, #111 40%, #000 100%);
+}
+
+/* Fundo luxo */
+#luxo {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg,
+    rgba(255,215,0,0.04),
+    rgba(255,255,255,0.01),
+    rgba(255,215,0,0.04));
+  animation: luxoMove 10s linear infinite;
+}
+
+@keyframes luxoMove {
+  from { transform: translateX(0); }
+  to   { transform: translateX(120px); }
+}
+
+/* Cofre */
+#cofre {
+  position: absolute;
+  width: min(860px, 90vw);
+  height: min(500px, 55vh);
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 40px;
+  background: linear-gradient(145deg, #444, #222);
+  border: 12px solid #777;
+  box-shadow:
+    0 0 80px rgba(255,215,0,0.25),
+    inset 0 0 40px rgba(255,255,255,0.06);
+}
+
+/* Porta do cofre */
+#porta {
+  position: absolute;
+  width: min(260px, 28vw);
+  height: min(260px, 28vw);
+  border-radius: 50%;
+  left: -130px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: radial-gradient(circle, #999, #333);
+  border: 10px solid #aaa;
+  transform-origin: left center;
+  box-shadow: 0 0 30px rgba(255,255,255,0.2);
+}
+
+/* Personagem */
+#patinhas {
+  position: absolute;
+  width: min(380px, 38vw);
+  left: -500px;
+  bottom: 10px;
+  z-index: 20;
+  filter:
+    drop-shadow(0 0 30px rgba(255,215,0,0.35))
+    drop-shadow(0 0 80px rgba(255,215,0,0.15));
+}
+
+#patinhas img {
+  width: 100%;
+  animation: flutuar 3s ease-in-out infinite;
+}
+
+@keyframes flutuar {
+  0%   { transform: translateY(0); }
+  50%  { transform: translateY(-14px); }
+  100% { transform: translateY(0); }
+}
+
+/* Título */
+#titulo {
+  position: absolute;
+  top: 52px;
+  width: 100%;
+  text-align: center;
+  font-size: clamp(28px, 6vw, 68px);
+  font-weight: bold;
+  color: #FFD700;
+  letter-spacing: 4px;
+  opacity: 0;
+  text-shadow:
+    0 0 20px rgba(255,215,0,0.9),
+    0 0 60px rgba(255,215,0,0.4);
+  z-index: 100;
+}
+
+/* Subtítulo */
+#subtitulo {
+  position: absolute;
+  bottom: 52px;
+  width: 100%;
+  text-align: center;
+  font-size: clamp(18px, 3vw, 32px);
+  color: #fff;
+  opacity: 0;
+  z-index: 100;
+  padding: 0 20px;
+}
+
+/* Itens de riqueza */
+.riqueza {
+  position: absolute;
+  font-size: clamp(48px, 6vw, 70px);
+  opacity: 0;
+  z-index: 50;
+  filter: drop-shadow(0 0 12px rgba(255,215,0,0.7));
+}
+
+/* Partículas */
+.particula {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #FFD700;
+  box-shadow: 0 0 10px #FFD700, 0 0 20px #FFD700;
+}
+
+/* Botão pular */
+#pular {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  padding: 12px 26px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #FFD700, #ffb700);
+  color: #111;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 9999;
+  box-shadow: 0 0 24px rgba(255,215,0,0.5);
+  transition: transform .2s, box-shadow .2s;
+}
+
+#pular:hover {
+  transform: scale(1.06);
+  box-shadow: 0 0 50px rgba(255,215,0,0.9);
+}

@@ -6,97 +6,166 @@ const _fmtR = v => Math.round(v || 0).toLocaleString('pt-BR');
 
 export const CASAS_FIXAS = [
   'INÍCIO',              // 0
-  'Começou Bem +05',     // 1
-  'ESTRELA',             // 2
-  'ESTRELA',             // 3
-  'ESTRELA',             // 4
-  'ESTRELA',             // 5
-  'INQUEBRÁVEIS',        // 6
-  'Estude mais -04',     // 7
-  'INQUEBRÁVEIS',        // 8
-  'COMPROU CELULAR +20', // 9
-  'EMERGÊNCIAS',         // 10
-  'ESTRELA',             // 11
-  'INQUEBRÁVEIS',        // 12
-  'ESTRELA',             // 13
-  'INQUEBRÁVEIS',        // 14
-  'Pequeno erro -03',    // 15
-  'BOLSA_OU_ESTRELA',    // 16
-  'INQUEBRÁVEIS',        // 17
-  'ESTRELA',             // 18
-  'ESTRELA',             // 19
-  'Bons Investimentos +08', // 20
-  'BOLSA_OU_ESTRELA',    // 21
-  'COMPROU CELULAR',     // 22
-  'INQUEBRÁVEIS',        // 23
-  'ESTRELA',             // 24
-  'INQUEBRÁVEIS',        // 25
-  'ESTRELA',             // 26
-  'Clima bom +20',       // 27
-  'BOLSA_OU_ESTRELA',    // 28
-  'INQUEBRÁVEIS',        // 29
-  'CRISE MUNDIAL -20',   // 30
-  'EMERGÊNCIAS',         // 31
-  'BOLSA_OU_ESTRELA',    // 32
-  'ESTRELA',             // 33
-  'COMPROU MOTO',        // 34
-  'EMERGÊNCIAS',         // 35
-  'ESTRELA',             // 36
-  'ESTRELA',             // 37
-  'Escolha ruim -06',    // 38
+  'Uhu',     // 1
+  'EST',             // 2
+  'EST',             // 3
+  'EST',             // 4
+  'BOLSA_OU_EST',             // 5
+  'N.QUEBRE',        // 6
+  'Estude',     // 7
+  'N.QUEBRE',        // 8
+  '$ CEL', // 9
+  'EMERG',         // 10
+  'EST',             // 11
+  'N.QUEBRE',        // 12
+  'EST',             // 13
+  'N.QUEBRE',        // 14
+  'Erro',    // 15
+  'BOLSA_OU_EST',    // 16
+  'N.QUEBRE',        // 17
+  'EST',             // 18
+  'EST',             // 19
+  'Bons Invest', // 20
+  'BOLSA_OU_EST',    // 21
+  '$ CEL',     // 22
+  'N.QUEBRE',        // 23
+  'EST',             // 24
+  'N.QUEBRE',        // 25
+  'EST',             // 26
+  'Clima bom',       // 27
+  'BOLSA_OU_EST',    // 28
+  'N.QUEBRE',        // 29
+  'CRISE',   // 30
+  'EMERG',         // 31
+  'BOLSA_OU_EST',    // 32
+  'EST',             // 33
+  '$ MOTO',        // 34
+  'EMERG',         // 35
+  'EST',             // 36
+  'EST',             // 37
+  'Esc ruim',    // 38
   'SONHOS',              // 39
-  'Guerra -10',          // 40
-  'BOLSA_OU_ESTRELA',    // 41
-  'EMERGÊNCIAS',         // 42
-  'COMPROU CARRO',       // 43
-  'INQUEBRÁVEIS',        // 44
+  'Guerra',          // 40
+  'BOLSA_OU_EST',    // 41
+  'EMERG',         // 42
+  '$ CAR',       // 43
+  'N.QUEBRE',        // 44
   'SONHOS',              // 45
-  'BOLSA_OU_ESTRELA',    // 46
-  'BOLSA_OU_ESTRELA',    // 47
-  'COMPROU CASA',        // 48
-  'BOLSA_OU_ESTRELA',    // 49
-  'ESTRELA',             // 50
+  'BOLSA_OU_EST',    // 46
+  'BOLSA_OU_EST',    // 47
+  '$ CASA',        // 48
+  'BOLSA_OU_EST',    // 49
+  'EST',             // 50
   'SONHOS',              // 51
-  'Pandemia -12',        // 52
-  'BOLSA_OU_ESTRELA',    // 53
-  'EMERGÊNCIAS',         // 54
-  'BOLSA_OU_ESTRELA',    // 55
-  'BOLSA_OU_ESTRELA',    // 56
-  'EMERGÊNCIAS',         // 57
-  'BOLSA_OU_ESTRELA',    // 58
-  'Nunca Desista -11',   // 59
+  'Pandemia',        // 52
+  'BOLSA_OU_EST',    // 53
+  'EMERG',         // 54
+  'BOLSA_OU_EST',    // 55
+  'BOLSA_OU_EST',    // 56
+  'EMERG',         // 57
+  'BOLSA_OU_EST',    // 58
+  'Nunca Desista',   // 59
   'Joga de novo',        // 60
-  'Foi só um susto -07', // 61
+  'Que susto', // 61
   'Tá quase',            // 62
-  'Aposentadoria! Viva de Renda :)', // 63
+  'Viva de Renda :)', // 63
 ];
 
 export const CASAS_BONUS = [
-   0,  5, 0, 0,   0, 0,  0, -4,  0, 20,   0, 0,  0, 0,  0, -3,
+   0,  5, 0, 0,   0, 0,  0, -4,  0, 0,   0, 0,  0, 0,  0, -3,
    0,  0, 0, 0,   8, 0,  0,  0,  0,  0,   0,20,  0, 0,-20,  0,
    0,  0, 0, 0,   0, 0, -6,  0,-10,  0,   0, 0,  0, 0,  0,  0,
    0,  0, 0, 0, -12, 0,  0,  0,  0,  0,   0,-11, 0,-7,  0,  0,
 ];
 
+// Legendas das casas — usadas no centro do tabuleiro e nos titles das casas
+export const LEGENDA_CASAS = [
+  {
+    id: 'estrela',
+    icone: '⭐', nome: 'Estrela',
+    descricao: 'Casa de Bônus! Acerte a pergunta e receba Salário × 3 (multiplicador fixo). ' +
+               'Se "Bolsa de Valores estiver desligado, as casas Bolsa também funcionam como Estrela.',
+    match: (n, b) => n === 'BOLSA_OU_EST' || (b === 0 && n === 'EST'),
+  },
+  {
+    id: 'emerg',
+    icone: '🚨', nome: 'EMERG',
+    descricao: 'Emergência! Ao pousar aqui você pode sacar dinheiro do seu ' +
+               'Cofrinho de Emergências para usar no jogo. Saldo negativo ' +
+               'também permite sacar de qualquer cofrinho.',
+    match: (n) => n === 'EMERG',
+  },
+  {
+    id: 'nquebre',
+    icone: '💪', nome: 'N.QUEBRE',
+    descricao: 'Inquebráveis! Você deve depositar pelo menos 70% do seu saldo ' +
+               'atual nos Cofrinhos antes de passar a vez. Caso não cumpra, ' +
+               'o operador não conseguirá avançar o jogador.',
+    match: (n) => n === 'N.QUEBRE',
+  },
+  {
+    id: 'sonhos',
+    icone: '💭', nome: 'Sonhos',
+    descricao: 'Realize um sonho! Ao pousar aqui você pode sacar dinheiro do ' +
+               'seu Cofrinho de Sonhos e usar como quiser no jogo.',
+    match: (n) => n === 'SONHOS',
+  },
+  {
+    id: 'bolsa',
+    icone: '📈', nome: 'Bolsa',
+    descricao: 'Bolsa de Valores! Com "Bolsa de Valores" ativo, jogue o dado especial: ' +
+               '🟢 VERDE = compra obrigatória · 🔴 VERMELHO = venda obrigatória (se tiver) · ⚪ BRANCO = livre escolha. ' +
+               'Com "Bolsa de Valores" inativo, funciona como Estrela (Salário × 3 ao acertar).',
+    match: (n) => n === 'BOLSA_OU_EST',
+  },
+  {
+    id: 'compra',
+    icone: '🛒', nome: 'Compra ($)',
+    descricao: 'Compra obrigatória de bem! Ao pousar aqui você paga o valor do ' +
+               'bem indicado (Celular, Moto, Carro ou Casa). O saldo pode ' +
+               'ficar negativo — saque de um cofrinho se precisar.',
+    match: (n) => n.startsWith('$'),
+  },
+  {
+    id: 'bonus',
+    icone: '💰', nome: 'Bônus',
+    descricao: 'Bônus em dinheiro! O valor (positivo) está indicado no canto ' +
+               'da casa. É creditado automaticamente ao pousar.',
+    match: (n, b) => b > 0,
+  },
+  {
+    id: 'penalidade',
+    icone: '📉', nome: 'Penalidade',
+    descricao: 'Penalidade! O valor (negativo) está indicado no canto da casa ' +
+               'e é debitado automaticamente ao pousar. O saldo pode ficar negativo.',
+    match: (n, b) => b < 0,
+  },
+];
+
+function _descricaoCasa(nomeFixo, bonus) {
+  const entry = LEGENDA_CASAS.find(l => l.match(nomeFixo, bonus));
+  return entry ? entry.descricao : '';
+}
+
 // Cores por índice de jogador (até 9)
-const COR_JOGADOR = [
+export const COR_JOGADOR = [
   '#e74c3c', '#3498db', '#2ecc71', '#f39c12',
   '#9b59b6', '#1abc9c', '#e91e63', '#ff5722', '#607d8b',
 ];
 
 export function getNomeCasa(idx) {
   const base = CASAS_FIXAS[idx] || '';
-  if (base === 'BOLSA_OU_ESTRELA') return state.ensinaAcoes === 'S' ? 'BOLSA' : 'ESTRELA';
+  if (base === 'BOLSA_OU_EST') return state.ensinaAcoes === 'S' ? 'BOLSA' : 'EST';
   return base;
 }
 
 export function getClasseCasa(idx) {
   const nome = getNomeCasa(idx);
-  if (nome === 'ESTRELA')        return 'casa-estrela';
+  if (nome === 'EST')        return 'casa-estrela';
   if (nome === 'BOLSA')          return 'casa-bolsa';
-  if (nome === 'EMERGÊNCIAS')    return 'casa-emergencias';
+  if (nome === 'EMERG')    return 'casa-emergencias';
   if (nome === 'SONHOS')         return 'casa-sonhos';
-  if (nome === 'INQUEBRÁVEIS')   return 'casa-inquebravelis';
+  if (nome === 'N.QUEBRE')   return 'casa-inquebravelis';
   if (nome.startsWith('COMPROU')) return 'casa-compra';
   if (nome === 'INÍCIO')         return 'casa-inicio';
   if (CASAS_BONUS[idx] > 0)     return 'casa-bonus';
@@ -107,11 +176,11 @@ export function getClasseCasa(idx) {
 function getIconeCasa(idx) {
   const nome = getNomeCasa(idx);
   if (nome === 'INÍCIO')          return '🏁';
-  if (nome === 'ESTRELA')         return '⭐';
+  if (nome === 'EST')         return '⭐';
   if (nome === 'BOLSA')           return '📈';
-  if (nome === 'EMERGÊNCIAS')     return '🚨';
+  if (nome === 'EMERG')     return '🚨';
   if (nome === 'SONHOS')          return '💭';
-  if (nome === 'INQUEBRÁVEIS')    return '💪';
+  if (nome === 'N.QUEBRE')    return '💪';
   if (nome.startsWith('COMPROU')) return '🛒';
   if (CASAS_BONUS[idx] > 0)      return '💰';
   if (CASAS_BONUS[idx] < 0)      return '📉';
@@ -134,9 +203,23 @@ function renderPioesNaCasa(pos) {
   let html = '<div class="casa-pioes">';
   for (let p = 0; p < state.qtJogadores; p++) {
     if (state.jogadoresPresentes[p] === 'S' && state.jogadoresPosicao[p] === pos) {
-      const ativo = (p === state.jogador - 1) ? 'piao-ativo' : '';
-      const cor   = COR_JOGADOR[p] || '#aaa';
-      html += `<div class="piao ${ativo}" style="background:${cor}" data-jogador="${p}" title="${state.jogadores[p]}">${p+1}</div>`;
+      const ativo      = (p === state.jogador - 1) ? 'piao-ativo' : '';
+      const foto       = state.jogadoresFotos?.[p];
+      const personagem = state.jogadoresPersonagem?.[p];
+      if (foto) {
+        html += `<div class="piao ${ativo}" data-jogador="${p}" title="${state.jogadores[p]}" style="padding:0;overflow:hidden;">` +
+          `<img src="${foto}" alt="${p+1}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;"></div>`;
+      } else if (personagem) {
+        if (personagem.includes('/')) {
+          html += `<div class="piao ${ativo}" data-jogador="${p}" title="${state.jogadores[p]}" style="padding:0;overflow:hidden;">` +
+            `<img src="${personagem}" alt="${p+1}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;"></div>`;
+        } else {
+          html += `<div class="piao ${ativo}" data-jogador="${p}" title="${state.jogadores[p]}" style="background:transparent;font-size:1.1em;line-height:1;">${personagem}</div>`;
+        }
+      } else {
+        const cor = COR_JOGADOR[p] || '#aaa';
+        html += `<div class="piao ${ativo}" style="background:${cor}" data-jogador="${p}" title="${state.jogadores[p]}">${p+1}</div>`;
+      }
     }
   }
   html += '</div>';
@@ -166,14 +249,9 @@ function buildCentro() {
       <div class="centro-ranking"  id="centroRanking">—</div>
       <div class="centro-cofrinhos" id="centroCofrinhos">—</div>
       <div class="centro-legenda">
-        <span>⭐ Estrela</span>
-        <span>🚨 Emergências</span>
-        <span>💪 Inquebráveis</span>
-        <span>💭 Sonhos</span>
-        <span>📈 Bolsa</span>
-        <span>🛒 Compra</span>
-        <span>💰 Bônus</span>
-        <span>📉 Penalidade</span>
+        ${LEGENDA_CASAS.map(l =>
+          `<button class="legenda-item" onclick="window._abrirLegenda('${l.id}')">${l.icone} ${l.nome}</button>`
+        ).join('')}
       </div>
     </div>`;
 }
@@ -218,27 +296,36 @@ export function renderTabuleiro() {
 
   for (let i = 0; i <= 63; i++) {
     const { row, col } = getGridPos(i);
-    const nome   = getNomeCasa(i);
-    const classe = getClasseCasa(i);
-    const icone  = getIconeCasa(i);
-    const bonus  = CASAS_BONUS[i] !== 0
+    const nome      = getNomeCasa(i);
+    const classe    = getClasseCasa(i);
+    const icone     = getIconeCasa(i);
+    const bonus     = CASAS_BONUS[i] !== 0
       ? `<span class="casa-bonus-tag">${CASAS_BONUS[i] > 0 ? '+' : ''}${CASAS_BONUS[i]}</span>`
       : '';
 
-    // Label curto para exibição na casa
-    let label = nome.replace('COMPROU ', '').replace('BOLSA_OU_ESTRELA', 'ESTRELA');
-    if (label.length > 14) label = label.substring(0, 13) + '…';
+    // Casas laterais (col 17 = direita: 17-31, col 1 = esquerda: 49-63) ficam em modo paisagem
+    const isLandscape = (i >= 17 && i <= 31) || (i >= 49 && i <= 63);
+    const extraClass  = isLandscape ? ' casa-landscape' : '';
+
+    // Paisagem tem mais largura para texto; retrato tem altura mas é estreito
+    // Posições 1-15 (inferior) e 33-47 (superior) têm largura dupla no grid
+    const isWide = (i >= 1 && i <= 15) || (i >= 33 && i <= 47);
+    let label = nome.replace('COMPROU ', '').replace('BOLSA_OU_EST', 'EST');
+    const maxLen = isLandscape ? 20 : isWide ? 15 : 11;
+    if (label.length > maxLen) label = label.substring(0, maxLen - 1) + '…';
 
     const pioes = renderPioesNaCasa(i);
 
+    const desc  = _descricaoCasa(CASAS_FIXAS[i], CASAS_BONUS[i]);
     html += `
-      <div class="casa ${classe} pos${i}" data-pos="${i}"
+      <div class="casa ${classe}${extraClass} pos${i}" data-pos="${i}"
            style="grid-row:${row};grid-column:${col}"
-           title="#${i} — ${nome}">
+           title="#${i} — ${nome}${desc ? ': ' + desc : ''}">
         <div class="casa-conteudo">
           <div class="casa-num">${i}</div>
           <div class="casa-icone">${icone}</div>
           <div class="casa-nome">${label}${bonus}</div>
+          <div class="casa-dono" id="cd-${i}"></div>
           ${pioes}
         </div>
       </div>`;
@@ -249,6 +336,38 @@ export function renderTabuleiro() {
   container.innerHTML = html;
   _atualizarCentro();
   _atualizarDestaquesJogadores();
+  atualizarDonos();
+}
+
+function _renderDonoIcon(p) {
+  const nome       = state.jogadores?.[p] || `Jogador ${p + 1}`;
+  const foto       = state.jogadoresFotos?.[p];
+  const personagem = state.jogadoresPersonagem?.[p];
+  const cor        = COR_JOGADOR[p] || '#aaa';
+  const title      = `🏠 Dono: ${nome}`;
+  if (foto) {
+    return `<div class="piao-dono" title="${title}" style="padding:0;overflow:hidden;">` +
+           `<img src="${foto}" alt="${p+1}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;"></div>`;
+  }
+  if (personagem) {
+    if (personagem.includes('/')) {
+      return `<div class="piao-dono" title="${title}" style="padding:0;overflow:hidden;">` +
+             `<img src="${personagem}" alt="${p+1}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;"></div>`;
+    }
+    return `<div class="piao-dono" title="${title}" style="background:transparent;font-size:0.65em;line-height:1;">${personagem}</div>`;
+  }
+  return `<div class="piao-dono" title="${title}" style="background:${cor};">${p + 1}</div>`;
+}
+
+export function atualizarDonos() {
+  const donos = state.casasDonos;
+  if (!donos) return;
+  for (let i = 0; i < 64; i++) {
+    const el = document.getElementById(`cd-${i}`);
+    if (!el) continue;
+    const d = donos[i];
+    el.innerHTML = (d !== null && d !== undefined) ? _renderDonoIcon(d) : '';
+  }
 }
 
 // movingPlayer: índice do jogador em movimento (recebe classe piao-movendo para animar o salto)
@@ -271,15 +390,41 @@ export function atualizarPosicoes(movingPlayer = -1) {
     casaEl.classList.add('casa-com-jogador');
     if (p === state.jogador - 1) casaEl.classList.add('casa-jogador-ativo');
 
-    const ativo  = (p === state.jogador - 1) ? 'piao-ativo' : '';
-    const bounce = (p === movingPlayer) ? ' piao-movendo' : '';
-    const cor    = COR_JOGADOR[p] || '#aaa';
-    const div    = document.createElement('div');
-    div.className    = `piao ${ativo}${bounce}`;
-    div.style.background = cor;
-    div.title        = state.jogadores[p];
-    div.textContent  = String(p + 1);
+    const ativo      = (p === state.jogador - 1) ? 'piao-ativo' : '';
+    const bounce     = (p === movingPlayer) ? ' piao-movendo' : '';
+    const foto       = state.jogadoresFotos?.[p];
+    const personagem = state.jogadoresPersonagem?.[p];
+    const div        = document.createElement('div');
+    div.className       = `piao ${ativo}${bounce}`;
+    div.title           = state.jogadores[p];
     div.dataset.jogador = String(p);
+    if (foto) {
+      div.style.padding  = '0';
+      div.style.overflow = 'hidden';
+      const img = document.createElement('img');
+      img.src    = foto;
+      img.alt    = String(p + 1);
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;';
+      div.appendChild(img);
+    } else if (personagem) {
+      if (personagem.includes('/')) {
+        div.style.padding  = '0';
+        div.style.overflow = 'hidden';
+        const imgP = document.createElement('img');
+        imgP.src           = personagem;
+        imgP.alt           = String(p + 1);
+        imgP.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;';
+        div.appendChild(imgP);
+      } else {
+        div.style.background = 'transparent';
+        div.style.fontSize   = '1.1em';
+        div.style.lineHeight = '1';
+        div.textContent      = personagem;
+      }
+    } else {
+      div.style.background = COR_JOGADOR[p] || '#aaa';
+      div.textContent      = String(p + 1);
+    }
     el.appendChild(div);
   }
   _atualizarCentro();

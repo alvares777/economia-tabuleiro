@@ -11,7 +11,10 @@
 
 <nav class="navbar navbar-dark bg-dark fixed-top px-3">
   <span class="navbar-brand">🎲 Economia dos Milionários — Minhas Partidas</span>
-  <a class="btn btn-sm btn-outline-success" href="/">+ Nova Partida</a>
+  <div class="d-flex gap-2">
+    <a class="btn btn-sm btn-outline-success" href="/">+ Nova Partida</a>
+    <button class="btn btn-sm btn-outline-danger" onclick="fazerLogout()">🚪 Sair</button>
+  </div>
 </nav>
 
 <div class="container mt-4">
@@ -45,60 +48,64 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-const USER_ID = 1;
+<script type="module">
+  import { requireLogin, logout } from './js/auth.js';
+  import { listGames, deleteGame, renameGame } from './js/api.js';
 
-async function carregarLista() {
-  const r = await fetch(`/api/games/${USER_ID}`);
-  const partidas = await r.json();
+  if (!requireLogin()) throw new Error('Não autenticado');
 
-  document.getElementById('carregando').style.display = 'none';
+  window.fazerLogout = function() { logout(); };
 
-  if (!partidas.length) {
-    document.getElementById('semPartidas').style.display = 'block';
-    return;
+  async function carregarLista() {
+    try {
+      const partidas = await listGames();
+      document.getElementById('carregando').style.display = 'none';
+
+      if (!partidas.length) {
+        document.getElementById('semPartidas').style.display = 'block';
+        return;
+      }
+
+      document.getElementById('containerLista').style.display = 'block';
+      const tbody = document.getElementById('tbodyLista');
+      tbody.innerHTML = partidas.map(p => {
+        const dt = new Date(p.saved_at).toLocaleString('pt-BR');
+        return `
+          <tr>
+            <td>
+              <button class="btn btn-sm btn-danger" onclick="excluir('${p.game_id}', this)">🗑</button>
+            </td>
+            <td><a href="/?gameId=${p.game_id}" class="text-warning">${dt}</a></td>
+            <td>
+              <input class="form-control form-control-sm bg-dark text-light border-secondary"
+                     value="${p.no_estado || ''}"
+                     placeholder="(sem nome)"
+                     onchange="renomear('${p.game_id}', this.value)">
+            </td>
+            <td class="text-center">${p.qt_jogadores}</td>
+            <td class="text-center">${p.nr_rodada}</td>
+            <td>
+              <a href="/?gameId=${p.game_id}" class="btn btn-sm btn-success">▶ Entrar</a>
+            </td>
+          </tr>`;
+      }).join('');
+    } catch (err) {
+      document.getElementById('carregando').innerHTML =
+        `<p class="text-danger">${err.message}</p>`;
+    }
   }
 
-  document.getElementById('containerLista').style.display = 'block';
-  const tbody = document.getElementById('tbodyLista');
-  tbody.innerHTML = partidas.map(p => {
-    const dt = new Date(p.saved_at).toLocaleString('pt-BR');
-    return `
-      <tr>
-        <td>
-          <button class="btn btn-sm btn-danger" onclick="excluir('${p.game_id}', this)">🗑</button>
-        </td>
-        <td><a href="/?gameId=${p.game_id}" class="text-warning">${dt}</a></td>
-        <td>
-          <input class="form-control form-control-sm bg-dark text-light border-secondary"
-                 value="${p.no_estado || ''}"
-                 placeholder="(sem nome)"
-                 onchange="renomear('${p.game_id}', this.value)">
-        </td>
-        <td class="text-center">${p.qt_jogadores}</td>
-        <td class="text-center">${p.nr_rodada}</td>
-        <td>
-          <a href="/?gameId=${p.game_id}" class="btn btn-sm btn-success">▶ Entrar</a>
-        </td>
-      </tr>`;
-  }).join('');
-}
+  window.excluir = async function(gameId, btn) {
+    if (!confirm('Excluir esta partida?')) return;
+    await deleteGame(gameId);
+    btn.closest('tr').remove();
+  };
 
-async function excluir(gameId, btn) {
-  if (!confirm('Excluir esta partida?')) return;
-  await fetch(`/api/games/${USER_ID}/${gameId}`, { method: 'DELETE' });
-  btn.closest('tr').remove();
-}
+  window.renomear = async function(gameId, nome) {
+    await renameGame(gameId, nome);
+  };
 
-async function renomear(gameId, nome) {
-  await fetch(`/api/games/${USER_ID}/${gameId}/name`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name: nome }),
-  });
-}
-
-carregarLista();
+  carregarLista();
 </script>
 </body>
 </html>

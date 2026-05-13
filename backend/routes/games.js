@@ -1,10 +1,11 @@
-const router = require('express').Router();
-const ctrl   = require('../controllers/gamesController');
+const router          = require('express').Router();
+const ctrl            = require('../controllers/gamesController');
+const { requireAuth } = require('../middleware/auth');
 
-router.get('/:userId',                ctrl.listGames);
-router.get('/:userId/:gameId',        ctrl.loadGame);
-router.post('/',                      ctrl.saveGame);
-router.delete('/:userId/:gameId',     ctrl.deleteGame);
-router.patch('/:userId/:gameId/name', ctrl.renameGame);
+router.get('/',               requireAuth, ctrl.listGames);
+router.get('/:gameId',        requireAuth, ctrl.loadGame);
+router.post('/',              requireAuth, ctrl.saveGame);
+router.delete('/:gameId',     requireAuth, ctrl.deleteGame);
+router.patch('/:gameId/name', requireAuth, ctrl.renameGame);
 
 module.exports = router;

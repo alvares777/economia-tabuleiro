@@ -14,7 +14,7 @@
   <div class="d-flex align-items-center flex-wrap gap-1 w-100">
 
     <!-- Menu -->
-    <div class="dropdown me-2">
+    <div class="dropdown">
       <button class="btn btn-sm btn-outline-light dropdown-toggle" data-bs-toggle="dropdown">
         ☰
       </button>
@@ -30,8 +30,15 @@
         <li><a class="dropdown-item" href="#" onclick="salvarJogo()">💾 Salvar</a></li>
         <li><a class="dropdown-item" href="#" onclick="irParaLista()">📂 Minhas Partidas</a></li>
         <li><a class="dropdown-item text-warning" href="#" onclick="confirmarNovaPartida()">🆕 Nova Partida</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item text-danger" href="#" onclick="window.fazerLogout()">🚪 Sair</a></li>
       </ul>
     </div>
+
+    <!-- Perfil do operador -->
+    <button id="navBtnPerfil" class="btn btn-sm btn-outline-secondary me-2 p-1"
+            data-bs-toggle="modal" data-bs-target="#modalPerfil"
+            title="Meu Perfil" style="line-height:1;"></button>
 
     <!-- Título -->
     <span class="navbar-brand mb-0 d-none d-md-inline">🎲 Economia dos Milionários</span>
@@ -56,7 +63,7 @@
       </div>
       <div class="indicador">
         <span class="small" id="indicadorRodada">R1/30</span>
-        <strong id="indicadorJogador">J1</strong>
+        <span id="indicadorJogador"></span>
       </div>
     </div>
 
@@ -67,10 +74,12 @@
         <span id="faceDado">🎲</span>
       </button>
 
-      <!-- Movimentos -->
-      <button class="btn btn-sm btn-success" onclick="promoverValorMovimento('avancar')">▶ Avança</button>
-      <button class="btn btn-sm btn-danger"  onclick="promoverValorMovimento('voltar')">◀ Volta</button>
-      <button class="btn btn-sm btn-secondary" onclick="promoverValorMovimento('so')">💰 Só $</button>
+      <!-- Movimentos (visíveis só após rolar o dado) -->
+      <div id="grpMovimento" class="d-none gap-1">
+        <button class="btn btn-sm btn-success" onclick="promoverValorMovimento('avancar')">▶ Avança</button>
+        <button class="btn btn-sm btn-danger"  onclick="promoverValorMovimento('voltar')">◀ Volta</button>
+        <button class="btn btn-sm btn-secondary" onclick="promoverValorMovimento('so')">💰 Só $</button>
+      </div>
 
       <!-- Pergunta -->
       <button class="btn btn-sm btn-info" onclick="fazerPergunta()">❓</button>
@@ -93,7 +102,10 @@
 
   <!-- Resumo / Ranking -->
   <div id="divRodadas" class="panel" style="display:none">
-    <h5 class="text-light mb-3">📊 Ranking de Riqueza Líquida</h5>
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h5 class="text-light mb-0">📊 Ranking de Riqueza Líquida</h5>
+      <button class="btn btn-sm btn-outline-light" onclick="mostrarPainel('divTabuleiro')">↩ Tabuleiro</button>
+    </div>
     <div id="containerResumo"></div>
   </div>
 
@@ -108,7 +120,10 @@
 
   <!-- Ações -->
   <div id="divAcoes" class="panel" style="display:none">
-    <h5 class="text-light mb-3">📈 Carteira de Ações</h5>
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h5 class="text-light mb-0">📈 Carteira de Ações</h5>
+      <button class="btn btn-sm btn-outline-light" onclick="mostrarPainel('divTabuleiro')">↩ Tabuleiro</button>
+    </div>
     <div class="table-responsive">
       <table class="table table-sm table-bordered">
         <thead>
@@ -121,7 +136,10 @@
 
   <!-- Bens -->
   <div id="divBens" class="panel" style="display:none">
-    <h5 class="text-light mb-3">🏠 Bens</h5>
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h5 class="text-light mb-0">🏠 Bens</h5>
+      <button class="btn btn-sm btn-outline-light" onclick="mostrarPainel('divTabuleiro')">↩ Tabuleiro</button>
+    </div>
     <div class="table-responsive">
       <table class="table table-sm table-bordered">
         <thead>
@@ -134,7 +152,10 @@
 
   <!-- Variáveis -->
   <div id="divVariaveis" class="panel" style="display:none">
-    <h5 class="text-light mb-3">⚙️ Configurações da Partida</h5>
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h5 class="text-light mb-0">⚙️ Configurações da Partida</h5>
+      <button class="btn btn-sm btn-outline-light" onclick="mostrarPainel('divTabuleiro')">↩ Tabuleiro</button>
+    </div>
     <div class="row g-3">
       <div class="col-sm-6 col-md-4 col-lg-3">
         <label class="form-label small">Rodadas</label>
@@ -169,10 +190,6 @@
         <input type="number" id="varRendimento" class="form-control form-control-sm" min="0" step="1">
       </div>
       <div class="col-sm-6 col-md-4 col-lg-3">
-        <label class="form-label small">Tipo de dado (0=Sorteio, 1=Desafio)</label>
-        <input type="number" id="varTipoDado" class="form-control form-control-sm" min="0" max="1">
-      </div>
-      <div class="col-sm-6 col-md-4 col-lg-3">
         <label class="form-label small">Próxima pergunta</label>
         <input type="number" id="varProxPergunta" class="form-control form-control-sm" min="1" max="38">
       </div>
@@ -182,9 +199,72 @@
           <label class="form-check-label small" for="varSom">Som</label>
         </div>
         <div class="form-check form-switch">
-          <input class="form-check-input" type="checkbox" id="varEnsinaAcoes">
-          <label class="form-check-label small" for="varEnsinaAcoes">Ensina Ações (BOLSA)</label>
+          <input class="form-check-input" type="checkbox" id="varTipoDado"
+                 onchange="document.getElementById('lblTipoDado').textContent = this.checked ? 'Dado Desafio' : 'Dado Normal'">
+          <label class="form-check-label small" id="lblTipoDado" for="varTipoDado">Dado Normal</label>
         </div>
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" id="varEnsinaAcoes">
+          <label class="form-check-label small" for="varEnsinaAcoes">BOLSA de Valores</label>
+        </div>
+      </div>
+
+      <!-- Valores de Bens (casas $) -->
+      <div class="col-12 mt-2"><hr class="border-secondary my-1"><p class="text-muted small mb-0">🛒 Valor dos Bens — usado nas casas $ do tabuleiro</p></div>
+      <div class="col-sm-6 col-md-3">
+        <label class="form-label small">Celular (R$)</label>
+        <input type="number" id="varValorCelular" class="form-control form-control-sm" min="1" step="1">
+      </div>
+      <div class="col-sm-6 col-md-3">
+        <label class="form-label small">Moto (R$)</label>
+        <input type="number" id="varValorMoto" class="form-control form-control-sm" min="1" step="1">
+      </div>
+      <div class="col-sm-6 col-md-3">
+        <label class="form-label small">Carro (R$)</label>
+        <input type="number" id="varValorCarro" class="form-control form-control-sm" min="1" step="1">
+      </div>
+      <div class="col-sm-6 col-md-3">
+        <label class="form-label small">Casa (R$)</label>
+        <input type="number" id="varValorCasa" class="form-control form-control-sm" min="1" step="1">
+      </div>
+      <div class="col-sm-6 col-md-3">
+        <label class="form-label small">Manutenção Celular %</label>
+        <input type="number" id="varDespesaCelular" class="form-control form-control-sm" min="0" step="1">
+      </div>
+      <div class="col-sm-6 col-md-3">
+        <label class="form-label small">Manutenção Moto %</label>
+        <input type="number" id="varDespesaMoto" class="form-control form-control-sm" min="0" step="1">
+      </div>
+      <div class="col-sm-6 col-md-3">
+        <label class="form-label small">Manutenção Carro %</label>
+        <input type="number" id="varDespesaCarro" class="form-control form-control-sm" min="0" step="1">
+      </div>
+      <div class="col-sm-6 col-md-3">
+        <label class="form-label small">Manutenção Casa %</label>
+        <input type="number" id="varDespesaCasa" class="form-control form-control-sm" min="0" step="1">
+      </div>
+
+      <!-- Valores das Ações -->
+      <div class="col-12 mt-2"><hr class="border-secondary my-1"><p class="text-muted small mb-0">📈 Valor Inicial das Ações — corrigido por 2 × Juros% a cada rodada</p></div>
+      <div class="col-sm-6 col-md-3">
+        <label class="form-label small">Banco (R$)</label>
+        <input type="number" id="varValorBanco" class="form-control form-control-sm" min="1" step="1">
+      </div>
+      <div class="col-sm-6 col-md-3">
+        <label class="form-label small">Energia (R$)</label>
+        <input type="number" id="varValorEnergia" class="form-control form-control-sm" min="1" step="1">
+      </div>
+      <div class="col-sm-6 col-md-3">
+        <label class="form-label small">Seguradora (R$)</label>
+        <input type="number" id="varValorSeguradora" class="form-control form-control-sm" min="1" step="1">
+      </div>
+      <div class="col-sm-6 col-md-3">
+        <label class="form-label small">Saneamento (R$)</label>
+        <input type="number" id="varValorSaneamento" class="form-control form-control-sm" min="1" step="1">
+      </div>
+      <div class="col-sm-6 col-md-3">
+        <label class="form-label small">Telecom (R$)</label>
+        <input type="number" id="varValorTelecom" class="form-control form-control-sm" min="1" step="1">
       </div>
     </div>
     <div class="mt-3 d-flex gap-2">
@@ -194,7 +274,10 @@
 
   <!-- Jogadores -->
   <div id="divJogadores" class="panel" style="display:none">
-    <h5 class="text-light mb-3">👥 Jogadores</h5>
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h5 class="text-light mb-0">👥 Jogadores</h5>
+      <button class="btn btn-sm btn-outline-light" onclick="mostrarPainel('divTabuleiro')">↩ Tabuleiro</button>
+    </div>
     <div class="d-flex gap-2 mb-3 flex-wrap">
       <button class="btn btn-sm btn-outline-success" onclick="emprestarDinheiro()">💰 Empréstimo</button>
       <button class="btn btn-sm btn-outline-danger"  onclick="pagarEmprestimo()">💸 Pagar dívida</button>
@@ -202,7 +285,7 @@
     <div class="table-responsive">
       <table class="table table-sm table-bordered">
         <thead>
-          <tr><th>#</th><th>Nome</th><th>Dinheiro</th><th>Dívida</th><th>Riqueza Líquida</th><th>Presente</th></tr>
+          <tr><th>#</th><th>Nome</th><th>Dinheiro</th><th>Dívida</th><th>Riqueza Líquida</th><th>Presente</th><th>Extrato</th></tr>
         </thead>
         <tbody id="tbodyJogadores"></tbody>
       </table>
@@ -254,6 +337,10 @@
         <span id="modalPerguntaFooterNormal">
           <button class="btn btn-secondary" onclick="window._navPerguntaOperador(-1)">◀ Voltar</button>
           <button class="btn btn-primary"   onclick="window._navPerguntaOperador(1)">Avançar ▶</button>
+          <button id="btnQAcertouAvulso" class="btn btn-success" disabled
+                  onclick="window._marcarRespostaDado(true)">✅ Acertou!</button>
+          <button id="btnQErrouAvulso"   class="btn btn-danger" disabled
+                  onclick="window._marcarRespostaDado(false)">❌ Errou</button>
           <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fechar</button>
         </span>
         <!-- Footer modo dado: operador informa o resultado -->
@@ -271,16 +358,232 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">🎲 Dado: <span id="valorDadoModal">0</span></h5>
+        <h5 class="modal-title">🎲 Dado: <span id="valorDadoModal">0</span><span id="energiaBonus" style="display:none" class="ms-2 badge bg-warning text-dark small">⚡ dobrado (Energia)</span></h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <p>O que você quer fazer com o resultado do dado?</p>
+        <div id="energiaAlerta" style="display:none" class="alert alert-warning py-2 mb-2">
+          ⚡ <strong>Energia!</strong> Você tem ações de Energia — o valor do seu dado foi <strong>dobrado</strong>.
+        </div>
+        <div id="bancoOpcao" style="display:none" class="alert alert-info py-2 mb-2">
+          <div class="fw-bold small mb-1">🏦 Você tem ações do Banco!</div>
+          <div id="bancoOpcaoTexto" class="small mb-2"></div>
+          <button class="btn btn-info btn-sm fw-bold" onclick="window._bancoPegarCasa()">💰 Ficar e receber</button>
+        </div>
+        <p id="modalMovimentoTexto">O que você quer fazer com o resultado do dado?</p>
       </div>
       <div class="modal-footer flex-wrap gap-2">
         <button class="btn btn-success" id="btnAvancar">▶ Avançar</button>
         <button class="btn btn-danger"  id="btnVoltar">◀ Voltar</button>
         <button class="btn btn-secondary" id="btnSoDinheiro">💰 Só Dinheiro</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal Extrato ──────────────────────────────────────────────────────── -->
+<div class="modal fade" id="modalExtrato" tabindex="-1">
+  <div class="modal-dialog modal-dialog-scrollable modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="extratoTitulo">📋 Extrato</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-2">
+        <div class="table-responsive">
+          <table class="table table-sm table-bordered table-striped mb-0">
+            <thead class="table-dark">
+              <tr>
+                <th class="text-center">Rod.</th>
+                <th>Tipo</th>
+                <th>Descrição</th>
+                <th class="text-end">Valor</th>
+                <th class="text-end">Saldo Após</th>
+                <th>Variáveis</th>
+              </tr>
+            </thead>
+            <tbody id="extratoBody"></tbody>
+          </table>
+        </div>
+        <div id="extratoTotais"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal Legenda das Casas ────────────────────────────────────────────── -->
+<div class="modal fade" id="modalLegenda" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalLegendaTitulo"></h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p id="modalLegendaTexto" class="mb-0" style="line-height:1.7"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal Dado Especial Bolsa ─────────────────────────────────────────── -->
+<div class="modal fade" id="modalBolsaDado" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">📈 Dado Especial da Bolsa</h5>
+      </div>
+      <div class="modal-body text-center pb-4">
+
+        <!-- Dado 3D — sempre visível -->
+        <div class="dado3d-scene mb-3">
+          <div class="dado3d" id="dado3d" style="transform:rotateX(-20deg) rotateY(25deg);">
+            <div class="dado3d-face face-d3-verde">  <span class="d3-icone">✓</span><span class="d3-label">VERDE</span></div>
+            <div class="dado3d-face face-d3-verde-b"><span class="d3-icone">✓</span><span class="d3-label">VERDE</span></div>
+            <div class="dado3d-face face-d3-verm">   <span class="d3-icone">✕</span><span class="d3-label">VERM.</span></div>
+            <div class="dado3d-face face-d3-verm-b"> <span class="d3-icone">✕</span><span class="d3-label">VERM.</span></div>
+            <div class="dado3d-face face-d3-branco"> <span class="d3-icone">?</span><span class="d3-label">BRANCO</span></div>
+            <div class="dado3d-face face-d3-branco-b"><span class="d3-icone">?</span><span class="d3-label">BRANCO</span></div>
+          </div>
+        </div>
+
+        <!-- Botões (antes do resultado) -->
+        <div id="bolsaDadoBotoes">
+          <button id="btnRolarDadoEspecial" class="btn btn-warning btn-lg px-5 fw-bold mb-3"
+            onclick="window._rolarDadoEspecial()">🎲 Rolar Dado Especial</button>
+          <p class="text-muted small mb-2">— ou clique na cor do dado físico —</p>
+          <div class="d-flex gap-2 justify-content-center">
+            <button class="btn btn-bolsa-manual px-3 fw-bold" style="background:#2ecc71;color:#fff;"
+              onclick="window._bolsaDadoResultado('verde')">✓ VERDE</button>
+            <button class="btn btn-bolsa-manual px-3 fw-bold" style="background:#e74c3c;color:#fff;"
+              onclick="window._bolsaDadoResultado('vermelho')">✕ VERM.</button>
+            <button class="btn btn-bolsa-manual px-3 fw-bold" style="background:#f0f0f0;color:#333;border:2px solid #bbb;"
+              onclick="window._bolsaDadoResultado('branco')">? BRANCO</button>
+          </div>
+        </div>
+
+        <!-- Resultado (após escolha ou sorteio) -->
+        <div id="bolsaDadoResultado" style="display:none">
+          <div id="bolsaDadoMensagem" class="alert mb-3 fs-5"></div>
+          <button class="btn btn-primary btn-lg"
+            onclick="bootstrap.Modal.getInstance(document.getElementById('modalBolsaDado')).hide()">Entendido ✔</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal Desafio (Dado tipo 1) ─────────────────────────────────────────── -->
+<div class="modal fade" id="modalDesafio" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">🎲 Desafio com dado físico!</h5>
+      </div>
+      <div class="modal-body text-center">
+        <p id="desafioTexto" class="fs-5 fw-bold mb-3"></p>
+
+        <!-- Alvo físico (desafios que exigem acertar o dado na caixa com alvo) -->
+        <div id="desafioAlvo" class="alert alert-warning mb-3" style="display:none">
+          🎯 O dado deve acertar o alvo antes de cair na caixa.<br>
+          <span class="small text-muted">O operador observa o resultado.</span>
+        </div>
+
+        <!-- Pergunta: acertou o alvo? (tipo 'alvo' — aparece após mostrar o número) -->
+        <div id="desafioAlvoConfirm" class="mb-3" style="display:none">
+          <p class="mb-2 fw-bold">Acertou o alvo?</p>
+          <div class="d-flex gap-3 justify-content-center">
+            <button class="btn btn-success btn-lg" onclick="window._desafioAlvoResposta(true)">✅ Sim</button>
+            <button class="btn btn-danger btn-lg" onclick="window._desafioAlvoResposta(false)">❌ Não</button>
+          </div>
+        </div>
+
+        <!-- Aposta: par ou ímpar -->
+        <div id="desafioParImpar" class="mb-3" style="display:none">
+          <p class="text-muted mb-2">Faça sua aposta <strong>antes</strong> de rolar:</p>
+          <div class="d-flex gap-3 justify-content-center">
+            <button class="btn btn-outline-primary btn-lg btn-aposta" data-aposta="par"
+                    onclick="window._desafioEscolher('par')">Par</button>
+            <button class="btn btn-outline-primary btn-lg btn-aposta" data-aposta="impar"
+                    onclick="window._desafioEscolher('impar')">Ímpar</button>
+          </div>
+        </div>
+
+        <!-- Aposta: faixa 1-3 / 4-6 -->
+        <div id="desafioFaixa" class="mb-3" style="display:none">
+          <p class="text-muted mb-2">Faça sua aposta <strong>antes</strong> de rolar:</p>
+          <div class="d-flex gap-3 justify-content-center">
+            <button class="btn btn-outline-primary btn-lg btn-aposta" data-aposta="baixo"
+                    onclick="window._desafioEscolher('baixo')">1 – 3</button>
+            <button class="btn btn-outline-primary btn-lg btn-aposta" data-aposta="alto"
+                    onclick="window._desafioEscolher('alto')">4 – 6</button>
+          </div>
+        </div>
+
+        <!-- Entrada do valor do dado físico -->
+        <div id="desafioEntrada" class="mt-3" style="display:none">
+          <p class="text-muted mb-2 small">Informe o resultado do dado físico:</p>
+          <div class="d-flex gap-2 justify-content-center flex-wrap">
+            <button class="btn btn-outline-secondary btn-dado-num fs-3" data-v="1" onclick="window._desafioSetValor(1)">⚀</button>
+            <button class="btn btn-outline-secondary btn-dado-num fs-3" data-v="2" onclick="window._desafioSetValor(2)">⚁</button>
+            <button class="btn btn-outline-secondary btn-dado-num fs-3" data-v="3" onclick="window._desafioSetValor(3)">⚂</button>
+            <button class="btn btn-outline-secondary btn-dado-num fs-3" data-v="4" onclick="window._desafioSetValor(4)">⚃</button>
+            <button class="btn btn-outline-secondary btn-dado-num fs-3" data-v="5" onclick="window._desafioSetValor(5)">⚄</button>
+            <button class="btn btn-outline-secondary btn-dado-num fs-3" data-v="6" onclick="window._desafioSetValor(6)">⚅</button>
+          </div>
+        </div>
+
+        <!-- Resultado (brevemente antes de fechar) -->
+        <p id="desafioResultado" class="mt-3 fs-5 fw-bold"></p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button id="btnDesafioConfirmar" class="btn btn-primary btn-lg"
+                onclick="window._desafioConfirmar()" disabled>✅ Confirmar e jogar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Modal Perfil ────────────────────────────────────────────────────────── -->
+<div class="modal fade" id="modalPerfil" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">👤 Meu Perfil</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="perfilAlerta" class="alert d-none mb-3"></div>
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div id="perfilFotoPreview" style="width:64px;height:64px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);overflow:hidden;display:flex;align-items:center;justify-content:center;background:#1a1a2e;flex-shrink:0;">
+            <span style="font-size:2rem;">👤</span>
+          </div>
+          <div class="flex-grow-1">
+            <input type="file" id="perfilFotoInput" class="form-control form-control-sm" accept="image/*" onchange="window._perfilPreviewFoto(this)">
+            <button class="btn btn-sm btn-outline-danger mt-1" onclick="window._perfilRemoverFoto()">Remover foto</button>
+          </div>
+        </div>
+        <input type="hidden" id="perfilFotoData">
+        <div class="mb-3">
+          <label class="form-label small">Nome</label>
+          <input type="text" id="perfilNome" class="form-control">
+        </div>
+        <div class="mb-3">
+          <label class="form-label small">E-mail</label>
+          <input type="email" id="perfilEmail" class="form-control">
+        </div>
+        <div class="mb-3">
+          <label class="form-label small">Nova Senha <span class="text-muted">(deixe em branco para não alterar)</span></label>
+          <input type="password" id="perfilSenha" class="form-control" placeholder="••••••••">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-warning" onclick="window._perfilSalvar()">Salvar</button>
       </div>
     </div>
   </div>
@@ -292,36 +595,413 @@
 <!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script type="module" src="js/main.js"></script>
+<script type="module">
+  import { getUser, setUser } from './js/auth.js';
+  import { apiUpdateMe }      from './js/api.js';
+
+  // Preenche o modal de perfil ao abrir
+  document.getElementById('modalPerfil').addEventListener('show.bs.modal', () => {
+    const user = getUser() || {};
+    document.getElementById('perfilNome').value    = user.nome  || '';
+    document.getElementById('perfilEmail').value   = user.email || '';
+    document.getElementById('perfilSenha').value   = '';
+    document.getElementById('perfilFotoData').value = user.foto || '';
+    const prev = document.getElementById('perfilFotoPreview');
+    prev.innerHTML = user.foto
+      ? `<img src="${user.foto}" style="width:100%;height:100%;object-fit:cover;">`
+      : '<span style="font-size:2rem;">👤</span>';
+    document.getElementById('perfilAlerta').className = 'alert d-none';
+  });
+
+  window._perfilPreviewFoto = function(input) {
+    const file = input.files[0];
+    if (!file) return;
+    new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = e => resolve(e.target.result);
+      reader.readAsDataURL(file);
+    }).then(src => {
+      document.getElementById('perfilFotoData').value = src;
+      document.getElementById('perfilFotoPreview').innerHTML =
+        `<img src="${src}" style="width:100%;height:100%;object-fit:cover;">`;
+    });
+  };
+
+  window._perfilRemoverFoto = function() {
+    document.getElementById('perfilFotoData').value = '';
+    document.getElementById('perfilFotoInput').value = '';
+    document.getElementById('perfilFotoPreview').innerHTML = '<span style="font-size:2rem;">👤</span>';
+  };
+
+  window._perfilSalvar = async function() {
+    const nome  = document.getElementById('perfilNome').value.trim();
+    const email = document.getElementById('perfilEmail').value.trim();
+    const senha = document.getElementById('perfilSenha').value;
+    const foto  = document.getElementById('perfilFotoData').value || null;
+    const alerta = document.getElementById('perfilAlerta');
+    alerta.className = 'alert d-none';
+
+    const payload = {};
+    if (nome)  payload.nome  = nome;
+    if (email) payload.email = email;
+    if (senha) payload.senha = senha;
+    payload.foto = foto;
+
+    try {
+      const updated = await apiUpdateMe(payload);
+      const user = getUser() || {};
+      const merged = { ...user, ...updated };
+      setUser(merged);
+      // Atualiza o botão de perfil na navbar
+      const btn = document.getElementById('navBtnPerfil');
+      if (btn) {
+        if (merged.foto) {
+          btn.innerHTML = `<img src="${merged.foto}" alt="Perfil" style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,0.6);">`;
+        } else {
+          const ini = (merged.nome || 'U').slice(0,1).toUpperCase();
+          btn.innerHTML = `<span style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:#3498db;color:#fff;font-weight:700;font-size:0.85rem;border:2px solid rgba(255,255,255,0.6);">${ini}</span>`;
+        }
+      }
+      alerta.className = 'alert alert-success';
+      alerta.textContent = 'Perfil atualizado com sucesso!';
+      setTimeout(() => {
+        bootstrap.Modal.getInstance(document.getElementById('modalPerfil'))?.hide();
+      }, 1500);
+    } catch (err) {
+      alerta.className = 'alert alert-danger';
+      alerta.textContent = err.message;
+    }
+  };
+</script>
 
 <script>
 // Dado animado: gera resultado aleatório, anima faces Unicode, depois exibe modal de ação
-let _valorDadoAtual = 0;
+window._valorDadoAtual = 0;
 const _FACES_DADO = ['⚀','⚁','⚂','⚃','⚄','⚅'];
 
-window.animarERolarDado = function() {
-  const btnEl  = document.getElementById('btnDadoRolar');
+function _syncBotoesMovimento() {
+  const el = document.getElementById('grpMovimento');
+  if (!el) return;
+  const mostrar = (window._valorDadoAtual || 0) > 0;
+  el.classList.toggle('d-flex', mostrar);
+  el.classList.toggle('d-none', !mostrar);
+  // sincroniza também os botões Acertou/Errou do modal de pergunta avulsa
+  const btnA = document.getElementById('btnQAcertouAvulso');
+  const btnE = document.getElementById('btnQErrouAvulso');
+  if (btnA) btnA.disabled = !mostrar;
+  if (btnE) btnE.disabled = !mostrar;
+}
+window._syncBotoesMovimento = _syncBotoesMovimento;
+
+// ── Dado tipo 1: Desafio físico ───────────────────────────────────────────────
+const _DESAFIOS = [
+  { t: 'Jogue o dado com os olhos vendados', tipo: 'opcional' },
+  { t: 'Jogue o dado com os olhos vendados', tipo: 'opcional' },
+  { t: 'Jogue o dado com os olhos vendados', tipo: 'opcional' },
+  { t: 'Jogue o dado com os olhos vendados', tipo: 'opcional' },
+  { t: 'Coloque o dado na mão espalmada e bata com a outra mão por baixo dela', tipo: 'opcional' },
+  { t: 'Coloque o dado na mão espalmada e bata com a outra mão por baixo dela', tipo: 'opcional' },
+  { t: 'Coloque o dado na mão espalmada e bata com a outra mão por baixo dela', tipo: 'opcional' },
+  { t: 'Jogue o dado de costas', tipo: 'opcional' },
+  { t: 'Dê um pulo e quando estiver no ar jogue o dado', tipo: 'alvo' },
+  { t: 'Dê um pulo e quando estiver no ar jogue o dado', tipo: 'alvo' },
+  { t: 'Jogue o dado com a mão NÃO DOMINANTE', tipo: 'alvo' },
+  { t: 'Jogue o dado com a mão NÃO DOMINANTE', tipo: 'alvo' },
+  { t: 'Jogue o dado com a mão NÃO DOMINANTE', tipo: 'alvo' },
+  { t: 'Jogue o dado com a mão NÃO DOMINANTE', tipo: 'alvo' },
+  { t: 'Jogue o dado usando apenas o dedo indicador', tipo: 'alvo' },
+  { t: 'Jogue o dado usando apenas o dedo indicador', tipo: 'alvo' },
+  { t: 'Jogue o dado usando apenas o dedo indicador', tipo: 'alvo' },
+  { t: 'Jogue o dado enquanto está equilibrado em apenas um pé', tipo: 'alvo' },
+  { t: 'Jogue o dado usando apenas os dedos médio e polegar', tipo: 'alvo' },
+  { t: 'Jogue o dado usando apenas os dedos médio e polegar', tipo: 'alvo' },
+  { t: 'Jogue o dado usando apenas os dedos médio e polegar', tipo: 'alvo' },
+  { t: 'Jogue o dado usando apenas os dedos médio e polegar', tipo: 'alvo' },
+  { t: 'Jogue o dado usando apenas os pés', tipo: 'opcional' },
+  { t: 'Jogue o dado a mais ou menos 1 metro de distância do alvo', tipo: 'alvo' },
+  { t: 'Jogue o dado equilibrando-o em uma colher na boca', tipo: 'opcional' },
+  { t: 'Faça o dado quicar na mesa', tipo: 'opcional' },
+  { t: 'Faça o dado quicar na mesa', tipo: 'opcional' },
+  { t: 'Faça o dado quicar na mesa', tipo: 'opcional' },
+  { t: 'Faça o dado quicar na mesa', tipo: 'opcional' },
+  { t: 'Faça o dado quicar na mesa', tipo: 'opcional' },
+  { t: 'Faça o dado quicar na mesa', tipo: 'opcional' },
+  { t: 'Jogue o dado e adivinhe se vai dar um número par ou ímpar', tipo: 'parImpar' },
+  { t: 'Jogue o dado e adivinhe se vai dar um número par ou ímpar', tipo: 'parImpar' },
+  { t: 'Jogue o dado e adivinhe se vai dar um número par ou ímpar', tipo: 'parImpar' },
+  { t: 'Jogue o dado e adivinhe se vai dar um número par ou ímpar', tipo: 'parImpar' },
+  { t: 'Jogue o dado e adivinhe se vai dar um número par ou ímpar', tipo: 'parImpar' },
+  { t: 'Jogue o dado e adivinhe se vai dar um número entre 1 e 3 ou entre 4 e 6', tipo: 'faixa' },
+  { t: 'Jogue o dado e adivinhe se vai dar um número entre 1 e 3 ou entre 4 e 6', tipo: 'faixa' },
+  { t: 'Jogue o dado e adivinhe se vai dar um número entre 1 e 3 ou entre 4 e 6', tipo: 'faixa' },
+  { t: 'Jogue o dado e adivinhe se vai dar um número entre 1 e 3 ou entre 4 e 6', tipo: 'faixa' },
+  { t: 'Jogue o dado e adivinhe se vai dar um número entre 1 e 3 ou entre 4 e 6', tipo: 'faixa' },
+];
+
+let _desafioAtual  = null;
+let _desafioAposta = null;
+let _desafioValor  = 0;
+
+window._mostrarDesafio = function() {
+  const idx = Math.floor(Math.random() * _DESAFIOS.length);
+  const d   = _DESAFIOS[idx];
+  _desafioAtual  = { ...d };
+  _desafioAposta = null;
+  _desafioValor  = 0;
+
+  document.getElementById('desafioTexto').textContent     = d.t;
+  document.getElementById('desafioResultado').textContent = '';
+
+  const elAlvo        = document.getElementById('desafioAlvo');
+  const elAlvoConfirm = document.getElementById('desafioAlvoConfirm');
+  const elParImpar    = document.getElementById('desafioParImpar');
+  const elFaixa       = document.getElementById('desafioFaixa');
+  const elEntrada     = document.getElementById('desafioEntrada');
+  elAlvo.style.display = elAlvoConfirm.style.display = elParImpar.style.display =
+    elFaixa.style.display = elEntrada.style.display = 'none';
+
+  document.querySelectorAll('.btn-dado-num').forEach(b => {
+    b.classList.remove('btn-primary'); b.classList.add('btn-outline-secondary');
+  });
+  document.querySelectorAll('.btn-aposta').forEach(b => {
+    b.classList.remove('btn-primary'); b.classList.add('btn-outline-primary');
+  });
+  document.getElementById('btnDesafioConfirmar').disabled = true;
+
+  if (d.tipo === 'opcional') {
+    elEntrada.style.display = '';
+  } else if (d.tipo === 'alvo') {
+    elAlvo.style.display        = '';
+    elAlvoConfirm.style.display = '';
+  } else if (d.tipo === 'parImpar') {
+    elParImpar.style.display = '';
+  } else if (d.tipo === 'faixa') {
+    elFaixa.style.display = '';
+  }
+
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalDesafio')).show();
+};
+
+window._desafioAlvoResposta = function(acertou) {
+  document.getElementById('desafioAlvoConfirm').style.display = 'none';
+  if (acertou) {
+    document.getElementById('desafioEntrada').style.display = '';
+  } else {
+    document.getElementById('btnDesafioConfirmar').disabled = true;
+    document.getElementById('desafioResultado').textContent = '😅 Não acertou o alvo — jogada vale 1';
+    setTimeout(() => _desafioFecharEProsseguir(1), 1500);
+  }
+};
+
+window._desafioEscolher = function(aposta) {
+  _desafioAposta = aposta;
+  document.querySelectorAll('.btn-aposta').forEach(b => {
+    const ativo = b.dataset.aposta === aposta;
+    b.classList.toggle('btn-primary', ativo);
+    b.classList.toggle('btn-outline-primary', !ativo);
+  });
+  document.getElementById('desafioEntrada').style.display = '';
+  _desafioAtualizarConfirmar();
+};
+
+window._desafioSetValor = function(v) {
+  _desafioValor = v;
+  document.querySelectorAll('.btn-dado-num').forEach(b => {
+    const ativo = parseInt(b.dataset.v) === v;
+    b.classList.toggle('btn-primary', ativo);
+    b.classList.toggle('btn-outline-secondary', !ativo);
+  });
+  _desafioAtualizarConfirmar();
+};
+
+function _desafioAtualizarConfirmar() {
+  const precisaAposta = _desafioAtual.tipo === 'parImpar' || _desafioAtual.tipo === 'faixa';
+  document.getElementById('btnDesafioConfirmar').disabled =
+    !(_desafioValor > 0 && (!precisaAposta || _desafioAposta !== null));
+}
+
+window._desafioConfirmar = function() {
+  const valor = _desafioValor;
+  if (!valor) return;
+
+  let resultado = '';
+  let valorFinal = valor;
+  if (_desafioAtual.tipo === 'alvo') {
+    resultado = '🎯 Acertou o alvo!';
+  } else if (_desafioAtual.tipo === 'parImpar') {
+    const acertou = (valor % 2 === 0) === (_desafioAposta === 'par');
+    if (acertou) {
+      resultado = '🎯 Adivinhou!';
+    } else {
+      resultado = `😅 Errou! (${valor} é ${valor % 2 === 0 ? 'par' : 'ímpar'}) — jogada vale 1`;
+      valorFinal = 1;
+    }
+  } else if (_desafioAtual.tipo === 'faixa') {
+    const acertou = (valor <= 3) === (_desafioAposta === 'baixo');
+    if (acertou) {
+      resultado = '🎯 Adivinhou!';
+    } else {
+      resultado = `😅 Errou! (${valor} está na faixa ${valor <= 3 ? '1-3' : '4-6'}) — jogada vale 1`;
+      valorFinal = 1;
+    }
+  }
+
+  document.getElementById('btnDesafioConfirmar').disabled = true;
+
+  if (resultado) {
+    document.getElementById('desafioResultado').textContent = resultado;
+    setTimeout(() => _desafioFecharEProsseguir(valorFinal), 1500);
+  } else {
+    _desafioFecharEProsseguir(valorFinal);
+  }
+};
+
+function _desafioFecharEProsseguir(valor) {
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalDesafio')).hide();
   const faceEl = document.getElementById('faceDado');
-  if (btnEl.classList.contains('rolando')) return; // evita duplo clique
-  if (window._esperandoProximo) return;            // aguarda operador avançar o jogador
+  if (faceEl) faceEl.textContent = _FACES_DADO[valor - 1];
+  window._valorDadoAtual = valor;
+  _syncBotoesMovimento();
+  window._onDadoRolado(valor);
+}
+
+// ── Dado Especial Bolsa ───────────────────────────────────────────────────────
+
+window._bolsaDadoResultado = function(cor) {
+  const msgs = {
+    verde:    { cls: 'alert-success',   txt: '🟢 <strong>VERDE</strong> — Você <strong>precisa comprar</strong> uma ação agora!' },
+    vermelho: { cls: 'alert-danger',    txt: '🔴 <strong>VERMELHO</strong> — Você é <strong>obrigado a vender</strong> uma ação (se tiver)!' },
+    branco:   { cls: 'alert-secondary', txt: '⚪ <strong>BRANCO</strong> — Faça o que quiser: compre, venda ou não faça nada.' },
+  };
+  const m = msgs[cor];
+  document.getElementById('bolsaDadoBotoes').style.display = 'none';
+  const msgEl = document.getElementById('bolsaDadoMensagem');
+  msgEl.className = 'alert ' + m.cls + ' mb-3 fs-5';
+  msgEl.innerHTML = m.txt;
+  document.getElementById('bolsaDadoResultado').style.display = '';
+  if (window._bolsaSetPending) window._bolsaSetPending(cor);
+};
+
+// ── Dado 3D — sorteio automático ──────────────────────────────────────────────
+
+window._rolarDadoEspecial = function() {
+  const dado = document.getElementById('dado3d');
+  const btn  = document.getElementById('btnRolarDadoEspecial');
+  if (!dado || (btn && btn.disabled)) return;
+  if (btn) btn.disabled = true;
+  document.querySelectorAll('.btn-bolsa-manual').forEach(b => b.disabled = true);
+
+  const cores = ['verde', 'vermelho', 'branco'];
+  const cor   = cores[Math.floor(Math.random() * 3)];
+
+  // Rotação do cubo para trazer cada face para a frente:
+  // VERDE   → face frontal (sem rotação)
+  // VERMELHO → face direita: rotateY(-90deg)
+  // BRANCO  → face superior: rotateX(-90deg)
+  const endX = { verde: 0, vermelho:   0, branco: -90 }[cor];
+  const endY = { verde: 0, vermelho: -90, branco:   0 }[cor];
+
+  const spins = 5;
+  const tx = spins * 360 + endX;
+  const ty = spins * 360 + endY;
+
+  dado.style.transition = 'none';
+  dado.style.transform  = 'rotateX(0deg) rotateY(0deg)';
+  dado.getBoundingClientRect(); // força reflow
+
+  dado.style.transition = 'transform 2.2s cubic-bezier(0.05, 0.85, 0.35, 1)';
+  dado.style.transform  = `rotateX(${tx}deg) rotateY(${ty}deg)`;
+
+  setTimeout(() => window._bolsaDadoResultado(cor), 2350);
+};
+
+document.getElementById('modalBolsaDado').addEventListener('show.bs.modal', () => {
+  const dado = document.getElementById('dado3d');
+  if (dado) {
+    dado.style.transition = 'none';
+    dado.style.transform  = 'rotateX(-20deg) rotateY(25deg)';
+  }
+  document.getElementById('bolsaDadoBotoes').style.display = '';
+  document.getElementById('bolsaDadoResultado').style.display = 'none';
+  const btn = document.getElementById('btnRolarDadoEspecial');
+  if (btn) btn.disabled = false;
+  document.querySelectorAll('.btn-bolsa-manual').forEach(b => b.disabled = false);
+});
+
+// ── Legenda das casas ─────────────────────────────────────────────────────────
+
+window._abrirLegenda = function(id) {
+  const entry = (window._legendaCasas || []).find(l => l.id === id);
+  if (!entry) return;
+  document.getElementById('modalLegendaTitulo').textContent = entry.icone + ' ' + entry.nome;
+  document.getElementById('modalLegendaTexto').textContent  = entry.descricao;
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalLegenda')).show();
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+window.animarERolarDado = function() {
+  const btnEl = document.getElementById('btnDadoRolar');
+  if (btnEl.classList.contains('rolando')) return;
+  if (window._esperandoProximo) return;
+  if (window.mostrarPainel) window.mostrarPainel('divTabuleiro');
+  if (window._tipoDado && window._tipoDado() === 1) { window._mostrarDesafio(); return; }
 
   btnEl.classList.add('rolando');
-  const resultado = Math.floor(Math.random() * 6) + 1; // decide antes
-  let count = 0;
+  const resultado = Math.floor(Math.random() * 6) + 1;
 
-  const iv = setInterval(() => {
-    count++;
-    if (count < 14) {
-      faceEl.textContent = _FACES_DADO[Math.floor(Math.random() * 6)];
-    } else {
-      clearInterval(iv);
-      faceEl.textContent = _FACES_DADO[resultado - 1];
-      btnEl.classList.remove('rolando');
-      _valorDadoAtual = resultado;
+  const dado = document.getElementById('dado-animado');
+  const tamanho = 250;
+  let x = Math.random() * (window.innerWidth  - tamanho);
+  let y = Math.random() * (window.innerHeight - tamanho);
+  let velX = (Math.random() < 0.5 ? 1 : -1) * (6 + Math.random() * 3);
+  let velY = (Math.random() < 0.5 ? 1 : -1) * (4 + Math.random() * 3);
+  let rotacao = 0;
+  const inicioMs = performance.now();
+  const duracaoMs = 3800;
 
-      // Delega toda a lógica de pergunta + movimento ao módulo main.js
-      window._onDadoRolado(resultado);
+  dado.style.display = 'flex';
+
+  function frame() {
+    const elapsed = performance.now() - inicioMs;
+    const largura = window.innerWidth;
+    const altura  = window.innerHeight;
+
+    x += velX;
+    y += velY;
+    rotacao += 8;
+
+    if (x <= 0 || x + tamanho >= largura) {
+      velX *= -1;
+      velX += (Math.random() * 2 - 1);
     }
-  }, 55);
+    if (y <= 0 || y + tamanho >= altura) {
+      velY *= -1;
+      velY += (Math.random() * 2 - 1);
+    }
+
+    dado.style.left      = x + 'px';
+    dado.style.top       = y + 'px';
+    dado.style.transform = `rotate(${rotacao}deg)`;
+    dado.textContent     = _FACES_DADO[Math.floor(Math.random() * 6)];
+
+    if (elapsed < duracaoMs) {
+      requestAnimationFrame(frame);
+    } else {
+      dado.textContent = _FACES_DADO[resultado - 1];
+      setTimeout(() => {
+        dado.style.display = 'none';
+        const faceEl = document.getElementById('faceDado');
+        if (faceEl) faceEl.textContent = _FACES_DADO[resultado - 1];
+        btnEl.classList.remove('rolando');
+        window._valorDadoAtual = resultado;
+        _syncBotoesMovimento();
+        window._onDadoRolado(resultado);
+      }, 400);
+    }
+  }
+
+  requestAnimationFrame(frame);
 };
 
 // Botões de ação rápida na navbar (usam o último valor rolado)
@@ -330,17 +1010,24 @@ function promoverValorMovimento(acao) {
     alert('Aguarde o operador avançar o jogador (▶) antes de rolar novamente.');
     return;
   }
-  if (_valorDadoAtual <= 0) {
+  if ((window._valorDadoAtual || 0) <= 0) {
     alert('Clique no dado 🎲 para rolar primeiro!');
     return;
   }
-  const v = _valorDadoAtual;
-  _valorDadoAtual = 0;
+  const v = window._valorDadoAtual;
+  window._valorDadoAtual = 0;
+  _syncBotoesMovimento();
+  if (acao === 'avancar' || acao === 'voltar') {
+    if (window.mostrarPainel) window.mostrarPainel('divTabuleiro');
+  }
   if      (acao === 'avancar') window.avancarJogador(v);
   else if (acao === 'voltar')  window.voltarJogador(v);
   else if (acao === 'so')      window.rolarDado(v);
 }
 </script>
+
+<!-- DADO ANIMADO -->
+<div id="dado-animado" style="display:none">🎲</div>
 
 </body>
 </html>
