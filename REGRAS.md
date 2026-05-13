@@ -147,7 +147,7 @@ Abaixo, todas as casas e seus efeitos:
 | Tipo | Ação ao parar |
 |------|--------------|
 | **INÍCIO** (pos. 0) | Ponto de partida | é clicável e serve para achar os jogadors no tabuleiro
-| **⭐ ESTRELA** | Acerte a pergunta do dado → recebe `salário × 3` (multiplicador fixo) |
+| **⭐ ESTRELA** | Acerte a pergunta do dado → recebe `dado × salário × 3` |
 | **📈 BOLSA** | Jogue o dado especial: 🟢 VERDE = comprar ação obrigatoriamente · 🔴 VERMELHO = vender ação obrigatoriamente (se tiver) · ⚪ BRANCO = livre escolha. Sem "Ensina Ações", funciona como ESTRELA |
 | **🚨 EMERG** | Pode sacar do cofrinho de **Emergências** (ver §8.2) |
 | **💭 SONHOS** | Pode sacar do cofrinho de **Sonhos** (ver §8.2) |
@@ -229,7 +229,7 @@ Abaixo, todas as casas e seus efeitos:
 
 ### 8.1 Casas ESTRELA e BOLSA
 
-- **ESTRELA**: ao pousar, o jogador responde à pergunta do dado. Se **acertar**, recebe `salário_rodada × 3` (multiplicador fixo — não depende do valor do dado). Se **errar**, apenas se move sem ganhar dinheiro.
+- **ESTRELA**: ao pousar, o jogador responde à pergunta do dado. Se **acertar**, recebe `dado × salário_rodada × 3`. Se **errar**, apenas se move sem ganhar dinheiro.
 - **BOLSA**: disponível quando a opção "Ensina Ações" está ativa. Ao pousar, jogue o **dado especial de 3 faces**:
   - 🟢 **VERDE** — jogador **deve comprar** pelo menos uma ação antes de passar a vez. O sistema bloqueia o avanço enquanto a compra não for registrada.
   - 🔴 **VERMELHO** — jogador **deve vender** pelo menos uma ação (se não tiver nenhuma, o bloqueio não é aplicado). O sistema bloqueia o avanço enquanto a venda não for registrada.
@@ -305,7 +305,7 @@ Cada jogador possui **4 cofrinhos**:
 | 1 | Emergências | 10 % a.r. (configurável) | Saque permitido na casa EMERG |
 | 2 | Sonhos | 10 % a.r. | Saque permitido na casa SONHOS |
 | 3 | Aposentadoria | 10 % a.r. | Contabilizado na riqueza líquida |
-| 4 | Doações | Não rende | Deduz IR no ranking final |
+| 4 | Doações | Não rende | Abate o valor integral no ranking final (sem limite) |
 
 ### 9.1 Cálculo do Rendimento
 
@@ -428,7 +428,7 @@ Disponíveis apenas quando **"Ensina Ações"** está ativo.
 - **Dividendos**: recebidos ao final de cada turno (`dividendo% × valor × quantidade`).
 - O jogador pode comprar ou vender 1 ação por clique no painel **📈 Ações**.
 - **Correção de valor por rodada**: ao final de cada rodada completa (quando todos os jogadores passaram a vez), o valor de **todas as ações** é corrigido por `2 × Juros%`. Exemplo: Juros = 5 % → ações sobem 10 % por rodada.
-- **Bônus de Energia** ⚡: jogador que possuir ao menos 1 ação de **Energia** tem o **valor do dado automaticamente dobrado** em cada rolagem. Exemplo: dado mostra 3 → o jogador se move 6 casas e ganha `salário × 6` (ou `salário × 3` em casa ESTRELA — o multiplicador fixo prevalece). O sistema exibe um aviso no modal de movimento.
+- **Bônus de Energia** ⚡: jogador que possuir ao menos 1 ação de **Energia** tem o **valor do dado automaticamente dobrado** em cada rolagem. Exemplo: dado mostra 3 → o jogador se move 6 casas e ganha `salário × 6` (ou `6 × salário × 3` em casa ESTRELA). O sistema exibe um aviso no modal de movimento.
 - O operador pode ajustar o valor inicial de cada ação no painel **⚙️ Variáveis**.
 
 ---
@@ -464,7 +464,8 @@ valor_ações     = Σ (quantidade × preço_atual_ação)
 riqueza_bruta   = cofrinhos(1+2+3) + dinheiro_caixa − dívidas
                 + valor_ações + valor_bens + valor_imóveis
 imposto         = riqueza_bruta × alíquota_IR%
-dedução_IR      = min(cofrinho_Doações, imposto)
+dedução_IR      = min(cofrinho_Doações, imposto)   ← zera o IR quando doações ≥ imposto
+sobra_doações   = max(0, cofrinho_Doações − imposto) ← excesso NÃO entra no líquido (foi doado)
 riqueza_líquida = riqueza_bruta − imposto + dedução_IR
 ```
 

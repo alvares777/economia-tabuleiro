@@ -163,6 +163,7 @@ function calcNetWorth(p) {
   const imposto  = riqueza * (state.taxaImpostos / 100);
   const cof3     = calcCofrinho(p, 3);
   const deducao  = Math.min(cof3, imposto);
+  const sobra    = Math.max(0, cof3 - imposto);
   return {
     cofAccum,
     stockValue,
@@ -171,6 +172,7 @@ function calcNetWorth(p) {
     riqueza,
     imposto,
     deducao,
+    sobra,
     liquido: riqueza - imposto + deducao,
   };
 }

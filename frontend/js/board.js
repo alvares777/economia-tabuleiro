@@ -255,12 +255,23 @@ function buildCentro() {
         <div class="centro-ativos-sep"></div>
         <div class="centro-ativos-col">
           <div class="centro-ativos-label">Bens</div>
-          <div class="centro-bens" id="centroBens">—</div>
+          <div class="centro-bens-grid">
+            <div class="centro-bem-cell centro-cell-clicavel" onclick="window.mostrarInfoBem(0)" title="Celular"><span class="centro-bem-ico">📱</span><span class="centro-bem-nome-s">Celular</span><span class="centro-bem-qtd" id="cbem0">—</span></div>
+            <div class="centro-bem-cell centro-cell-clicavel" onclick="window.mostrarInfoBem(1)" title="Moto"><span class="centro-bem-ico">🏍️</span><span class="centro-bem-nome-s">Moto</span><span class="centro-bem-qtd" id="cbem1">—</span></div>
+            <div class="centro-bem-cell centro-cell-clicavel" onclick="window.mostrarInfoBem(2)" title="Carro"><span class="centro-bem-ico">🚗</span><span class="centro-bem-nome-s">Carro</span><span class="centro-bem-qtd" id="cbem2">—</span></div>
+            <div class="centro-bem-cell centro-cell-clicavel" onclick="window.mostrarInfoBem(3)" title="Casa"><span class="centro-bem-ico">🏠</span><span class="centro-bem-nome-s">Casa</span><span class="centro-bem-qtd" id="cbem3">—</span></div>
+          </div>
         </div>
         <div class="centro-ativos-sep"></div>
         <div class="centro-ativos-col">
           <div class="centro-ativos-label">Ações</div>
-          <div class="centro-acoes" id="centroAcoes">—</div>
+          <div class="centro-bens-grid">
+            <div class="centro-bem-cell centro-cell-clicavel" onclick="window.mostrarInfoAcao(0)" title="Banco"><span class="centro-bem-ico">🏦</span><span class="centro-bem-nome-s">Banco</span><span class="centro-bem-qtd" id="cacao0">—</span></div>
+            <div class="centro-bem-cell centro-cell-clicavel" onclick="window.mostrarInfoAcao(1)" title="Energia"><span class="centro-bem-ico">⚡</span><span class="centro-bem-nome-s">Energia</span><span class="centro-bem-qtd" id="cacao1">—</span></div>
+            <div class="centro-bem-cell centro-cell-clicavel" onclick="window.mostrarInfoAcao(2)" title="Seguradora"><span class="centro-bem-ico">🛡️</span><span class="centro-bem-nome-s">Seguro</span><span class="centro-bem-qtd" id="cacao2">—</span></div>
+            <div class="centro-bem-cell centro-cell-clicavel" onclick="window.mostrarInfoAcao(3)" title="Saneamento"><span class="centro-bem-ico">💧</span><span class="centro-bem-nome-s">Sanea.</span><span class="centro-bem-qtd" id="cacao3">—</span></div>
+            <div class="centro-bem-cell centro-cell-clicavel" onclick="window.mostrarInfoAcao(4)" title="Telecom"><span class="centro-bem-ico">📡</span><span class="centro-bem-nome-s">Telecom</span><span class="centro-bem-qtd" id="cacao4">—</span></div>
+          </div>
         </div>
       </div>
       <div class="centro-legenda">
@@ -277,10 +288,12 @@ function _atualizarCentro() {
   const cofEl    = document.getElementById('centroCofrinhos');
   if (!playerEl || !state.jogadores) return;
 
-  const p   = state.jogador - 1;
-  const cor = COR_JOGADOR[p] || '#aaa';
-  const nome = state.jogadores[p] || `Jogador ${state.jogador}`;
-  playerEl.innerHTML = `<span style="color:${cor}">●</span> ${nome} · R${state.rodada}/${state.rodadas}`;
+  const p    = state.vista - 1;
+  const pAtv = state.jogador - 1;
+  const cor  = COR_JOGADOR[p] || '#aaa';
+  const nome = state.jogadores[p] || `Jogador ${state.vista}`;
+  const consultaTag = p !== pAtv ? ' <span style="font-size:0.7em;opacity:0.55">(consultando)</span>' : '';
+  playerEl.innerHTML = `<span style="color:${cor}">●</span> ${nome} · R${state.rodada}/${state.rodadas}${consultaTag}`;
 
   if (rankEl) {
     try {
@@ -295,41 +308,34 @@ function _atualizarCentro() {
     try {
       const ICONS  = ['🚨', '💭', '🏦', '🎁'];
       const LABELS = ['Emerg.', 'Sonhos', 'Aposen.', 'Doações'];
-      const linhas = [0, 1, 2, 3].map(c =>
-        `${ICONS[c]} ${LABELS[c]}: R$${_fmtR(calcCofrinho(p, c))}`
-      );
+      const linhas = [0, 1, 2, 3].map(c => {
+        const txt = `${ICONS[c]} ${LABELS[c]}: R$${_fmtR(calcCofrinho(p, c))}`;
+        return c === 3
+          ? `<span class="centro-doacao-link" onclick="window.mostrarInfoDoacao()">${txt}</span>`
+          : txt;
+      });
       cofEl.innerHTML = linhas.join('<br>');
     } catch { cofEl.textContent = ''; }
   }
 
-  const acEl = document.getElementById('centroAcoes');
-  if (acEl) {
-    try {
-      const ICONS_AC = ['🏦', '⚡', '🛡️', '💧', '📡'];
-      const acoes = (state.jogadoresAcoes[p] || []);
-      const comAcao = ICONS_AC.map((ic, a) => ({ ic, a, qty: acoes[a] || 0 }))
-        .filter(({ qty }) => qty > 0);
-      acEl.innerHTML = comAcao.length
-        ? comAcao.map(({ ic, a, qty }) =>
-            `${ic} ${state.nomesAcoes[a]}: ${qty}×`).join('<br>')
-        : '<span style="opacity:.5">Sem ações</span>';
-    } catch { acEl.textContent = ''; }
-  }
+  try {
+    const bens = state.jogadoresBens[p] || [];
+    [0,1,2,3].forEach(b => {
+      const el = document.getElementById(`cbem${b}`);
+      if (el) el.textContent = `×${bens[b] || 0}`;
+    });
+  } catch { /* ignore */ }
 
-  const bEl = document.getElementById('centroBens');
-  if (bEl) {
-    try {
-      const ICONS_B = ['📱', '🏍️', '🚗', '🏠'];
-      const bens = (state.jogadoresBens[p] || []);
-      const comBem = ICONS_B.map((ic, b) => ({ ic, b, qty: bens[b] || 0 }))
-        .filter(({ qty }) => qty > 0);
-      bEl.innerHTML = comBem.length
-        ? comBem.map(({ ic, b, qty }) =>
-            `${ic} ${state.nomesBens[b]}: ${qty}×`).join('<br>')
-        : '<span style="opacity:.5">Sem bens</span>';
-    } catch { bEl.textContent = ''; }
-  }
+  try {
+    const acoes = state.jogadoresAcoes[p] || [];
+    [0,1,2,3,4].forEach(a => {
+      const el = document.getElementById(`cacao${a}`);
+      if (el) el.textContent = `×${acoes[a] || 0}`;
+    });
+  } catch { /* ignore */ }
 }
+
+export function atualizarCentro() { _atualizarCentro(); }
 
 export function renderTabuleiro() {
   const container = document.getElementById('divTabuleiro');

@@ -3,7 +3,7 @@
 import { state, initState, toSavePayload, fromLoadResponse, salarioDaRodada, calcCofrinho, calcValorMercadoBem } from './state.js';
 import { saveGame, loadGame, getQuestions, apiGetActiveUsers } from './api.js';
 import { requireLogin, getUser, isAdmin, logout } from './auth.js';
-import { renderTabuleiro, atualizarPosicoes, atualizarDonos, getNomeCasa, CASAS_BONUS, COR_JOGADOR, LEGENDA_CASAS } from './board.js';
+import { renderTabuleiro, atualizarPosicoes, atualizarDonos, atualizarCentro, getNomeCasa, CASAS_BONUS, COR_JOGADOR, LEGENDA_CASAS } from './board.js';
 import {
   atualizarIndicadores, mostrarMensagem, mostrarPergunta,
   renderJogadores, renderCofrinhos, renderAcoes, renderBens,
@@ -388,11 +388,10 @@ function _modalMovimento(v, comDinheiro) {
     window._bancoPending = null;
   }
 
-  // Verifica se o destino é uma casa Estrela (EST) → salário × 3
+  // Verifica se o destino é uma casa Estrela (EST) → dado × salário × 3
   const landingPos  = ((state.jogadoresPosicao[p] + v) % 64 + 64) % 64;
   const isEstrela   = comDinheiro && getNomeCasa(landingPos) === 'EST';
-  const mult        = isEstrela ? 3 : v;
-  const ganho       = sal * mult;
+  const ganho       = sal * v * (isEstrela ? 3 : 1);
 
   document.getElementById('valorDadoModal').textContent = v;
 
@@ -400,7 +399,7 @@ function _modalMovimento(v, comDinheiro) {
   if (corpo) {
     corpo.innerHTML = comDinheiro
       ? isEstrela
-        ? `✅ Acertou! ⭐ Casa Estrela — Salário × 3 = <strong>R$ ${fmt(ganho)}</strong> ao avançar. Para onde vai?`
+        ? `✅ Acertou! ⭐ Casa Estrela — Dado ${v} × Salário × 3 = <strong>R$ ${fmt(ganho)}</strong> ao avançar. Para onde vai?`
         : `✅ Acertou! Ganhará <strong>R$ ${fmt(ganho)}</strong> ao avançar. Para onde vai?`
       : `❌ Não acertou. Nenhum dinheiro desta vez. Escolha como movimentar.`;
   }
@@ -426,7 +425,7 @@ function _modalMovimento(v, comDinheiro) {
     _registrarEvento(p, comDinheiro ? 'SALARIO_DADO' : 'MOVIMENTO', {
       descricao: comDinheiro
         ? isEstrela
-          ? `⭐ Estrela: Sal R$${fmt(sal)} × 3 = +R$${fmt(ganho)}`
+          ? `⭐ Estrela: Dado ${v} × Sal R$${fmt(sal)} × 3 = +R$${fmt(ganho)}`
           : `Dado ${v} × Sal R$${fmt(sal)} = +R$${fmt(ganho)} (avançou)`
         : `Avançou ${v} casas`,
       valor: comDinheiro ? ganho : 0,
@@ -441,6 +440,23 @@ function _modalMovimento(v, comDinheiro) {
 
   document.getElementById('btnVoltar').onclick = () => {
     if (_movimentoUsado) return;
+
+    const perdaSalario = comDinheiro ? ganho : 0;
+    let msg = `⚠️ Ao voltar, o salário da rodada não será aplicado.\n\n`;
+    if (perdaSalario > 0) {
+      const descMult = isEstrela
+        ? ` (dado ${v} × salário R$ ${fmt(sal)} × 3 ⭐ Casa Estrela)`
+        : ` (dado ${v} × salário R$ ${fmt(sal)})`;
+      msg += `Se avançasse ${v} casa${v > 1 ? 's' : ''}, você receberia R$ ${fmt(perdaSalario)}`
+           + descMult + `.\n\n`
+           + `Ao voltar você perderá esse valor.\n\n`;
+    } else {
+      msg += `Você não acertou a pergunta, portanto não receberia salário ao avançar.\n\n`;
+    }
+    msg += `Confirma que deseja voltar ${v} casa${v > 1 ? 's' : ''}?`;
+
+    if (!confirm(msg)) return;
+
     _movimentoUsado = true;
     window._valorDadoAtual = 0;
     window._syncBotoesMovimento?.();
@@ -854,7 +870,7 @@ function processarCasa(p, dadoValor = 0) {
         saldoAntes,
       });
       mostrarMensagem(
-        `🚨 EMERGÊNCIAS!<br>Você perdeu <strong>R$ ${penalidade}</strong> em gastos emergenciais.<br>Você pode sacar do cofrinho de <strong>Emergências</strong> para cobrir seus gastos.${_alertaSaldoNeg(p)}`,
+        `🚨 EMERGÊNCIAS!<br>Você perdeu <strong>R$ ${penalidade}</strong> em gastos emergenciais.<br>Você pode sacar do cofrinho de <strong>Emergências</strong> para cobrir seus gastos se ficar negativo.${_alertaSaldoNeg(p)}`,
         'erro'
       );
       tocarSom('ruim');
@@ -864,7 +880,7 @@ function processarCasa(p, dadoValor = 0) {
 
   } else if (nome === 'SONHOS') {
     mostrarMensagem(
-      `💭 SONHOS!<br>Você pode sacar do cofrinho de <strong>Sonhos</strong> para cobrir seus gastos.`,
+      `💭 SONHOS!<br>Você pode sacar do cofrinho de <strong>Sonhos</strong> para cobrir seus gastos, se ficar negativo.`,
       'info'
     );
 
@@ -963,6 +979,7 @@ window.anteriorJogador = function() {
   } while (state.jogadoresPresentes[anterior - 1] !== 'S');
   state.vista = anterior;
   atualizarIndicadores();
+  atualizarCentro();
   _renderPainelAtivo();
 };
 
@@ -975,6 +992,7 @@ window.proximoVista = function() {
   } while (state.jogadoresPresentes[proximo - 1] !== 'S');
   state.vista = proximo;
   atualizarIndicadores();
+  atualizarCentro();
   _renderPainelAtivo();
 };
 

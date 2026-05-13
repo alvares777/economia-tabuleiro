@@ -328,6 +328,27 @@ const _BEM_VANTAGEM = [
   '🚗 -30% aluguel',
   '🏠 +R$10/rodada',
 ];
+const _BEM_ICONE  = ['📱', '🏍️', '🚗', '🏠'];
+const _ACAO_ICONE = ['🏦', '⚡', '🛡️', '💧', '📡'];
+
+window.mostrarInfoDoacao = function() {
+  document.getElementById('modalLegendaTitulo').textContent = '🎁 Doações';
+  document.getElementById('modalLegendaTexto').textContent  =
+    'Não rende juros. No ranking final, abate o IR até zerá-lo. O excesso das doações acima do IR aparece como Sobra, mas não entra no Líquido (o valor foi doado).';
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalLegenda')).show();
+};
+
+window.mostrarInfoBem = function(b) {
+  document.getElementById('modalLegendaTitulo').textContent = `${_BEM_ICONE[b]} ${state.nomesBens[b]}`;
+  document.getElementById('modalLegendaTexto').textContent  = _BEM_VANTAGEM[b];
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalLegenda')).show();
+};
+
+window.mostrarInfoAcao = function(a) {
+  document.getElementById('modalLegendaTitulo').textContent = `${_ACAO_ICONE[a]} ${state.nomesAcoes[a]}`;
+  document.getElementById('modalLegendaTexto').textContent  = _ACAO_VANTAGEM[a];
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalLegenda')).show();
+};
 
 export function renderBens() {
   const tbody = document.getElementById('tbodyBens');
@@ -556,7 +577,7 @@ export function renderResumo() {
   const container = document.getElementById('containerResumo');
   if (!container) return;
   const ranking = calcRanking();
-  let html = '<div class="table-responsive"><table class="table table-sm table-bordered"><thead><tr><th>#</th><th>Jogador</th><th>Cofrinhos</th><th>Ações</th><th>Bens</th><th>Imóveis</th><th>Dinheiro</th><th>Dívida</th><th>Riqueza</th><th>Imposto</th><th>Dedução</th><th class="table-success">Líquido</th></tr></thead><tbody>';
+  let html = '<div class="table-responsive"><table class="table table-sm table-bordered"><thead><tr><th>#</th><th>Jogador</th><th>Cofrinhos</th><th>Ações</th><th>Bens</th><th>Imóveis</th><th>Dinheiro</th><th>Dívida</th><th>Riqueza</th><th>Imposto</th><th>Dedução</th><th title="Sobra das doações">Sobra</th><th class="table-success">Líquido</th></tr></thead><tbody>';
   ranking.forEach((p, rank) => {
     const nw = calcNetWorth(p);
     const medalha = rank === 0 ? '🥇' : rank === 1 ? '🥈' : rank === 2 ? '🥉' : rank + 1;
@@ -572,6 +593,7 @@ export function renderResumo() {
       <td>R$ ${fmt(nw.riqueza)}</td>
       <td>R$ ${fmt(nw.imposto)}</td>
       <td>R$ ${fmt(nw.deducao)}</td>
+      <td class="text-muted">R$ ${fmt(nw.sobra)}</td>
       <td class="fw-bold text-success">R$ ${fmt(nw.liquido)}</td>
     </tr>`;
   });
