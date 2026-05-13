@@ -146,7 +146,7 @@ Abaixo, todas as casas e seus efeitos:
 
 | Tipo | Ação ao parar |
 |------|--------------|
-| **INÍCIO** (pos. 0) | Ponto de partida |
+| **INÍCIO** (pos. 0) | Ponto de partida | é clicável e serve para achar os jogadors no tabuleiro
 | **⭐ ESTRELA** | Acerte a pergunta do dado → recebe `salário × 3` (multiplicador fixo) |
 | **📈 BOLSA** | Jogue o dado especial: 🟢 VERDE = comprar ação obrigatoriamente · 🔴 VERMELHO = vender ação obrigatoriamente (se tiver) · ⚪ BRANCO = livre escolha. Sem "Ensina Ações", funciona como ESTRELA |
 | **🚨 EMERG** | Pode sacar do cofrinho de **Emergências** (ver §8.2) |

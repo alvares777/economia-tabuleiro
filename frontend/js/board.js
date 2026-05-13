@@ -360,9 +360,10 @@ export function renderTabuleiro() {
     const pioes = renderPioesNaCasa(i);
 
     const desc  = _descricaoCasa(CASAS_FIXAS[i], CASAS_BONUS[i]);
+    const inicioClick = i === 0 ? ' onclick="window.destacarJogadoresUmAUm()"' : '';
     html += `
       <div class="casa ${classe}${extraClass} pos${i}" data-pos="${i}"
-           style="grid-row:${row};grid-column:${col}"
+           style="grid-row:${row};grid-column:${col}"${inicioClick}
            title="#${i} — ${nome}${desc ? ': ' + desc : ''}">
         <div class="casa-conteudo">
           <div class="casa-num">${i}</div>

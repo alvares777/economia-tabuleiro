@@ -1159,6 +1159,81 @@ window.fazerLogout = function() {
   logout();
 };
 
+window.destacarJogadoresUmAUm = async function() {
+  const presentes = [];
+  for (let p = 0; p < state.qtJogadores; p++) {
+    if (state.jogadoresPresentes[p] === 'S') presentes.push(p);
+  }
+
+  for (const p of presentes) {
+    const piao = document.querySelector(`.piao[data-jogador="${p}"]`);
+    if (!piao) continue;
+
+    const rect = piao.getBoundingClientRect();
+    const cx   = rect.left + rect.width  / 2;
+    const cy   = rect.top  + rect.height / 2;
+    const sz   = 88;
+
+    const foto       = state.jogadoresFotos?.[p];
+    const personagem = state.jogadoresPersonagem?.[p];
+    const cor        = COR_JOGADOR[p] || '#888';
+    const nome       = state.jogadores[p] || `Jogador ${p + 1}`;
+
+    const ov = document.createElement('div');
+    ov.style.cssText = `position:fixed;z-index:9990;width:${sz}px;height:${sz}px;` +
+      `left:${cx - sz/2}px;top:${cy - sz/2}px;border-radius:50%;` +
+      `border:3px solid rgba(255,255,255,0.95);display:flex;align-items:center;` +
+      `justify-content:center;pointer-events:none;overflow:hidden;` +
+      `box-shadow:0 0 0 4px white,0 0 28px rgba(255,215,0,0.9),0 0 56px rgba(255,215,0,0.5);` +
+      `transition:transform 0.3s ease,opacity 0.3s ease;transform:scale(0.2);opacity:0;`;
+
+    if (foto) {
+      const img = document.createElement('img');
+      img.src = foto;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;';
+      ov.appendChild(img);
+    } else if (personagem && personagem.includes('/')) {
+      const img = document.createElement('img');
+      img.src = personagem;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+      ov.appendChild(img);
+    } else if (personagem) {
+      ov.style.background = 'rgba(0,0,0,0.5)';
+      ov.style.fontSize   = '2.6em';
+      ov.style.lineHeight = '1';
+      ov.textContent      = personagem;
+    } else {
+      ov.style.background = cor;
+      ov.style.fontSize   = '2em';
+      ov.style.fontWeight = '900';
+      ov.style.color      = '#fff';
+      ov.style.textShadow = '0 0 6px rgba(0,0,0,0.8)';
+      ov.textContent      = p + 1;
+    }
+
+    const label = document.createElement('div');
+    label.textContent  = nome;
+    label.style.cssText = `position:absolute;bottom:-30px;left:50%;transform:translateX(-50%);` +
+      `white-space:nowrap;font-size:13px;font-weight:700;color:#fff;` +
+      `text-shadow:0 0 6px #000,0 0 3px #000;background:rgba(0,0,0,0.75);` +
+      `padding:2px 10px;border-radius:6px;`;
+    ov.appendChild(label);
+
+    document.body.appendChild(ov);
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      ov.style.transform = 'scale(1)';
+      ov.style.opacity   = '1';
+    }));
+
+    await new Promise(r => setTimeout(r, 1000));
+
+    ov.style.transform = 'scale(0.2)';
+    ov.style.opacity   = '0';
+    await new Promise(r => setTimeout(r, 320));
+    ov.remove();
+  }
+};
+
 window.togglePresente = function(p, presente) {
   state.jogadoresPresentes[p] = presente ? 'S' : 'N';
 };
