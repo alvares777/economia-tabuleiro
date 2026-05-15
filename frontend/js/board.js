@@ -242,11 +242,48 @@ function _atualizarDestaquesJogadores() {
 function buildCentro() {
   return `
     <div class="tabuleiro-centro" style="grid-row:2/17;grid-column:2/17">
-      <div class="centro-logo">💰</div>
-      <div class="centro-titulo">Economia<br>dos Milionários</div>
-      <div class="centro-dado" id="dadoCentro">🎲</div>
-      <div class="centro-player"   id="centroPlayer">—</div>
-      <div class="centro-ranking"  id="centroRanking">—</div>
+
+      <!-- Header: medalhão + título -->
+      <div class="centro-header">
+        <div class="centro-logo">$</div>
+        <div class="centro-titulo">Economia<small>dos Milionários</small></div>
+      </div>
+
+      <!-- Game strip: dado + pílulas (rodada / turno / pergunta) -->
+      <div class="centro-game-strip">
+        <div class="centro-dado" id="dadoCentro">🎲</div>
+        <div class="centro-game-info">
+          <div class="info-pill">
+            <span class="lbl">Rodada</span>
+            <strong id="centroRodada">—</strong>
+          </div>
+          <div class="info-pill">
+            <span class="lbl">Turno</span>
+            <strong id="centroTurno">—</strong>
+          </div>
+          <div class="info-pill pergunta-pill">
+            <span class="lbl">Pergunta</span>
+            <strong id="centroPergunta">—</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card "Vez de [Jogador]" — sempre o ATIVO -->
+      <div class="centro-jogador-ativo">
+        <div class="ja-avatar" id="centroVezAvatar">—</div>
+        <div class="ja-info">
+          <div class="ja-label">Vez de</div>
+          <div class="ja-nome" id="centroVezNome">—</div>
+        </div>
+        <div class="ja-ranking" id="centroVezRanking">—</div>
+      </div>
+
+      <!-- Tag de consulta (só aparece quando vista !== jogador) -->
+      <div class="centro-consulta-tag" id="centroConsultaTag" style="display:none">
+        🔍 Consultando <strong id="centroConsultaNome">—</strong>
+      </div>
+
+      <!-- Painel: cofrinhos / bens / ações do jogador CONSULTADO -->
       <div class="centro-ativos">
         <div class="centro-ativos-col">
           <div class="centro-ativos-label">Cofrinhos</div>
@@ -275,6 +312,8 @@ function buildCentro() {
           </div>
         </div>
       </div>
+
+      <!-- Legenda -->
       <div class="centro-legenda">
         ${LEGENDA_CASAS.map(l =>
           `<button class="legenda-item" onclick="window._abrirLegenda('${l.id}')">${l.icone} ${l.nome}</button>`
@@ -283,45 +322,102 @@ function buildCentro() {
     </div>`;
 }
 
+
+
+// ── Helper: aplica avatar/foto/personagem no elemento ──────────────────────
+function _aplicarAvatarCentro(el, p) {
+  if (!el || p < 0 || p >= state.qtJogadores) return;
+  const cor        = COR_JOGADOR[p] || '#aaa';
+  const foto       = state.jogadoresFotos?.[p];
+  const personagem = state.jogadoresPersonagem?.[p];
+
+  // limpa estilos inline anteriores
+  el.style.padding = '';
+  el.style.fontSize = '';
+  el.style.background = '';
+
+  if (foto) {
+    el.style.padding    = '0';
+    el.innerHTML = `<img src="${foto}" alt="${p+1}">`;
+  } else if (personagem && personagem.includes('/')) {
+    el.style.padding    = '0';
+    el.innerHTML = `<img src="${personagem}" alt="${p+1}">`;
+  } else if (personagem) {
+    el.style.background = 'transparent';
+    el.style.fontSize   = '1.4em';
+    el.textContent      = personagem;
+  } else {
+    el.style.background = cor;
+    el.textContent      = String(p + 1);
+  }
+}
+
+function _setTextCentro(id, t) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = t;
+}
+
 function _atualizarCentro() {
-  const playerEl = document.getElementById('centroPlayer');
-  const rankEl   = document.getElementById('centroRanking');
-  const cofEl    = document.getElementById('centroCofrinhos');
-  if (!playerEl || !state.jogadores) return;
+  const cofEl = document.getElementById('centroCofrinhos');
+  if (!cofEl || !state.jogadores) return;
 
-  const p    = state.vista - 1;
-  const pAtv = state.jogador - 1;
-  const cor  = COR_JOGADOR[p] || '#aaa';
-  const nome = state.jogadores[p] || `Jogador ${state.vista}`;
-  const consultaTag = p !== pAtv ? ' <span style="font-size:0.7em;opacity:0.55">(consultando)</span>' : '';
-  playerEl.innerHTML = `<span style="color:${cor}">●</span> ${nome} · R${state.rodada}/${state.rodadas}${consultaTag}`;
+  const ja  = state.jogador - 1;   // jogador ATIVO (de quem é a vez)
+  const v   = state.vista   - 1;   // jogador CONSULTADO (visualização)
+  const isConsultando = (v !== ja);
 
+  // ── Game strip — info global ──────────────────────────────────────
+  _setTextCentro('centroRodada',   `${state.rodada}/${state.rodadas}`);
+  _setTextCentro('centroTurno',    `${state.jogador}/${state.qtJogadores}`);
+  _setTextCentro('centroPergunta', `P#${state.proximaPergunta}`);
+
+  // ── Card "Vez de [X]" — jogador ATIVO ─────────────────────────────
+  const avEl = document.getElementById('centroVezAvatar');
+  if (avEl) _aplicarAvatarCentro(avEl, ja);
+  _setTextCentro('centroVezNome', state.jogadores[ja] || `Jogador ${state.jogador}`);
+
+  // ── Medalha de ranking — do jogador CONSULTADO ───────────────────
+  const rankEl = document.getElementById('centroVezRanking');
   if (rankEl) {
     try {
       const ranking = calcRanking();
-      const pos = ranking.indexOf(p) + 1;
-      const medal = pos === 1 ? '🥇' : pos === 2 ? '🥈' : pos === 3 ? '🥉' : `${pos}°`;
-      rankEl.textContent = `Ranking: ${medal}`;
+      const pos     = ranking.indexOf(v) + 1;
+      const medal   = pos === 1 ? '🥇' : pos === 2 ? '🥈' : pos === 3 ? '🥉' : `${pos}°`;
+      rankEl.textContent = medal;
+      rankEl.title       = isConsultando
+        ? `Ranking de ${state.jogadores[v]}`
+        : 'Seu ranking';
     } catch { rankEl.textContent = ''; }
   }
 
-  if (cofEl) {
-    try {
-      const ICONS  = ['🚨', '💭', '🏦', '🎁'];
-      const LABELS = ['Emerg.', 'Sonhos', 'Aposen.', 'Doações'];
-      const linhas = [0, 1, 2, 3].map(c => {
-        const txt = `${ICONS[c]} ${LABELS[c]}: R$${_fmtR(calcCofrinho(p, c))}`;
-        return c === 3
-          ? `<span class="centro-doacao-link" onclick="window.mostrarInfoDoacao()">${txt}</span>`
-          : txt;
-      });
-      cofEl.innerHTML = linhas.join('<br>');
-    } catch { cofEl.textContent = ''; }
+  // ── Tag "🔍 Consultando" ──────────────────────────────────────────
+  const tagEl = document.getElementById('centroConsultaTag');
+  if (tagEl) {
+    if (isConsultando) {
+      tagEl.style.display = '';
+      _setTextCentro('centroConsultaNome',
+        state.jogadores[v] || `Jogador ${state.vista}`);
+    } else {
+      tagEl.style.display = 'none';
+    }
   }
 
+  // ── Cofrinhos do jogador CONSULTADO ───────────────────────────────
   try {
-    const bens      = state.jogadoresBens[p]      || [];
-    const bensLucro = state.jogadoresBensLucro?.[p] || [0,0,0,0];
+    const ICONS  = ['🚨', '💭', '🏦', '🎁'];
+    const LABELS = ['Emerg.', 'Sonhos', 'Aposen.', 'Doações'];
+    const linhas = [0, 1, 2, 3].map(c => {
+      const txt = `${ICONS[c]} ${LABELS[c]}: R$${_fmtR(calcCofrinho(v, c))}`;
+      return c === 3
+        ? `<span class="centro-doacao-link" onclick="window.mostrarInfoDoacao()">${txt}</span>`
+        : txt;
+    });
+    cofEl.innerHTML = linhas.join('<br>');
+  } catch { cofEl.textContent = ''; }
+
+  // ── Bens do jogador CONSULTADO ────────────────────────────────────
+  try {
+    const bens      = state.jogadoresBens[v]      || [];
+    const bensLucro = state.jogadoresBensLucro?.[v] || [0,0,0,0];
     [0,1,2,3].forEach(b => {
       const el  = document.getElementById(`cbem${b}`);
       const elL = document.getElementById(`cbemL${b}`);
@@ -330,12 +426,13 @@ function _atualizarCentro() {
     });
   } catch { /* ignore */ }
 
+  // ── Imóveis do tabuleiro do jogador CONSULTADO ────────────────────
   try {
     const casasEl = document.getElementById('centroCasasTab');
     if (casasEl) {
       const minhas = [];
-      (state.casasDonos || []).forEach((dono, pos) => { if (dono === p) minhas.push(pos); });
-      const aluguelTotal = (state.jogadoresCasasAluguel || [])[p] || 0;
+      (state.casasDonos || []).forEach((dono, pos) => { if (dono === v) minhas.push(pos); });
+      const aluguelTotal = (state.jogadoresCasasAluguel || [])[v] || 0;
       if (minhas.length > 0) {
         const nomesHtml = minhas.map(pos => getNomeCasa(pos)).join(', ');
         casasEl.innerHTML = `🏠 <b>${minhas.length}</b> imóvel(s): <small>${nomesHtml}</small> · Aluguel: R$${_fmtR(aluguelTotal)}`;
@@ -345,14 +442,16 @@ function _atualizarCentro() {
     }
   } catch { /* ignore */ }
 
+  // ── Ações do jogador CONSULTADO ───────────────────────────────────
   try {
-    const acoes = state.jogadoresAcoes[p] || [];
+    const acoes = state.jogadoresAcoes[v] || [];
     [0,1,2,3,4].forEach(a => {
       const el = document.getElementById(`cacao${a}`);
       if (el) el.textContent = `×${acoes[a] || 0}`;
     });
   } catch { /* ignore */ }
 }
+
 
 export function atualizarCentro() { _atualizarCentro(); }
 

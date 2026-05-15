@@ -1,5 +1,5 @@
 /* ============================================================
-   Economia dos Milionários — Estilos
+   Economia dos Milionários — Tabuleiro "Cofre Dourado"
    ============================================================ */
 
 body {
@@ -9,9 +9,16 @@ body {
   padding-top: 62px;
 }
 
-/* ── Tabuleiro 3D ─────────────────────────────────────────── */
+body {
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  background:
+    radial-gradient(ellipse at 50% 0%, #14181f 0%, #08090d 60%, #050608 100%);
+  color: #fff8e3;
+  padding-top: 62px;
+}
 
-/* Remove o padding/background do painel para o tabuleiro não desperdiçar espaço */
+/* ── Tabuleiro — moldura "Cofre Dourado" ─────────────────────────── */
+
 #divTabuleiro {
   padding: 0 !important;
   background: transparent !important;
@@ -21,7 +28,7 @@ body {
 }
 
 .tabuleiro-wrapper {
-  perspective: 1400px;
+  perspective: 1800px;
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -29,26 +36,42 @@ body {
 }
 
 .tabuleiro-frame {
+  position: relative;
   width: min(98vw, calc((100vh - 82px) * 12 / 7));
   transform: rotateX(10deg);
   transform-origin: center 92%;
   transition: transform 0.55s ease;
 
-  /* Wood frame */
+  padding: 22px;
+  border-radius: 24px;
+
+  /* Cofre dourado: preto profundo com inlay ouro */
   background:
-    linear-gradient(160deg,
-      #a0621e 0%, #6b3a10 20%, #8b4513 40%,
-      #5c2e0a 60%, #9c5a1c 80%, #6b3a10 100%);
-  padding: 15px;
-  border-radius: 20px;
+    linear-gradient(135deg, #2a1c08 0%, #14100a 50%, #0a0805 100%);
   box-shadow:
-    0 0 0 2px #D2B48C,
-    0 0 0 5px #4a2008,
-    0 0 0 7px rgba(210,180,140,0.3),
-    0 35px 70px rgba(0,0,0,0.8),
-    0 15px 35px rgba(0,0,0,0.5),
-    inset 0 2px 6px rgba(255,200,100,0.25),
-    inset 0 -2px 6px rgba(0,0,0,0.5);
+    0 0 0 2px #5a4014,
+    0 0 0 4px #FFE9A0,
+    0 0 0 7px #5a4014,
+    0 0 0 10px #1d160c,
+    0 35px 70px rgba(0,0,0,0.85),
+    0 15px 35px rgba(0,0,0,0.55),
+    inset 0 2px 0 rgba(255,235,170,0.18),
+    inset 0 -2px 0 rgba(0,0,0,0.5);
+}
+
+/* Cravos dourados nos 4 cantos */
+.tabuleiro-frame::before {
+  content: "";
+  position: absolute; inset: 6px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,209,92,0.25);
+  background:
+    radial-gradient(circle at 14px 14px, #FFE9A0 1.5px, transparent 2.5px),
+    radial-gradient(circle at calc(100% - 14px) 14px, #FFE9A0 1.5px, transparent 2.5px),
+    radial-gradient(circle at 14px calc(100% - 14px), #FFE9A0 1.5px, transparent 2.5px),
+    radial-gradient(circle at calc(100% - 14px) calc(100% - 14px), #FFE9A0 1.5px, transparent 2.5px);
+  pointer-events: none;
+  z-index: 5;
 }
 
 .tabuleiro-wrapper:hover .tabuleiro-frame {
@@ -58,220 +81,224 @@ body {
 .tabuleiro-grid {
   display: grid;
   grid-template-columns: 3fr repeat(15, 2fr) 3fr;
-  grid-template-rows: 3fr repeat(15, 1fr) 3fr;
-  gap: 2px;
-  background: #050d1a;
-  border-radius: 10px;
-  padding: 2px;
+  grid-template-rows:    3fr repeat(15, 1fr) 3fr;
+  gap: 3px;
+  padding: 6px;
+  border-radius: 14px;
   aspect-ratio: 12/7;
+
+  background:
+    radial-gradient(ellipse at 50% 50%, #110a02 0%, #050300 70%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,209,92,0.15),
+    inset 0 4px 20px rgba(0,0,0,0.7);
 }
 
-/* ── Casas individuais ────────────────────────────────────── */
+/* ── Casas individuais ────────────────────────────────────────────── */
 
 .casa {
   position: relative;
-  border-radius: 3px;
+  border-radius: 6px;
   overflow: hidden;
   cursor: default;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  transition: transform 0.2s ease, filter 0.2s ease;
+  isolation: isolate;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.15),
+    inset 0 -2px 4px rgba(0,0,0,0.45),
+    0 1px 2px rgba(0,0,0,0.6);
 }
 
 .casa:hover {
-  transform: scale(1.14);
+  transform: translateY(-2px) scale(1.05);
   z-index: 30;
-  box-shadow: 0 0 18px rgba(255,255,255,0.35), 0 0 6px rgba(255,255,255,0.15);
+  filter: brightness(1.1);
 }
 
-/* Casas de topo/base — retrato (3fr tall × 1fr wide) */
+/* Textura sutil em diagonal (overlay) */
+.casa::after {
+  content: "";
+  position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(45deg,
+    rgba(255,255,255,0.04) 0 1px, transparent 1px 5px);
+  mix-blend-mode: overlay;
+  opacity: 0.6;
+}
+
 .casa-conteudo {
-  position: absolute;
-  inset: 0;
+  position: absolute; inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 3px;
-  padding: 4px 2px 2px;
+  padding: 6px 3px 4px;
+  z-index: 1;
 }
 
 .casa-num {
   position: absolute;
-  top: 2px;
-  right: 3px;
-  font-size: clamp(0.3rem, 0.55vmin, 0.7rem);
-  opacity: 0.35;
+  top: 3px; right: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(7px, 0.85vmin, 11px);
+  font-weight: 700;
   line-height: 1;
-  color: #fff;
+  opacity: 0.55;
+  letter-spacing: -0.02em;
+  color: rgba(255,235,170,0.7);
 }
 
 .casa-icone {
-  font-size: clamp(1.5rem, 3.2vmin, 4rem);
+  font-size: clamp(18px, 3vmin, 38px);
   line-height: 1;
-  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.7));
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.7));
   flex-shrink: 0;
 }
 
 .casa-nome {
-  font-size: clamp(0.5rem, 1.1vmin, 1.3rem);
+  font-family: 'Anton', sans-serif;
+  font-size: clamp(8px, 1.15vmin, 15px);
   text-align: center;
-  font-weight: 700;
-  color: rgba(255,255,255,0.95);
-  text-shadow: 0 1px 3px rgba(0,0,0,0.9);
-  word-break: break-word;
-  line-height: 1.15;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  line-height: 1.05;
   padding: 0 2px;
+  word-break: break-word;
+  color: #fff8e3;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.9);
 }
 
 .casa-bonus-tag {
   display: inline-block;
-  background: rgba(0,0,0,0.55);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(7px, 0.85vmin, 11px);
+  font-weight: 700;
+  padding: 1px 4px;
   border-radius: 3px;
-  padding: 1px 2px;
-  font-size: clamp(0.38rem, 0.8vmin, 1rem);
-  margin-left: 1px;
+  margin-left: 2px;
+  background: rgba(0,0,0,0.6);
+  color: #FFE9A0;
 }
 
-/* ── Casas laterais — paisagem (1fr tall × 3fr wide) ─────────── */
-
+/* Casas laterais — paisagem */
 .casa-landscape .casa-conteudo {
   flex-direction: row;
   justify-content: flex-start;
   align-items: center;
-  padding: 3px 6px;
-  gap: 6px;
+  padding: 4px 8px;
+  gap: 8px;
 }
-
-.casa-landscape .casa-num {
-  top: 2px;
-  right: 3px;
-}
-
-.casa-landscape .casa-icone {
-  font-size: clamp(1.2rem, 2.4vmin, 3rem);
-  flex-shrink: 0;
-}
-
 .casa-landscape .casa-nome {
   text-align: left;
-  font-size: clamp(0.5rem, 1.05vmin, 1.25rem);
-  line-height: 1.2;
   flex: 1;
   min-width: 0;
 }
-
 .casa-landscape .casa-pioes {
   flex-shrink: 0;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
 }
 
-/* ── Cores das casas — gradientes 3D ─────────────────────── */
+/* ── Cores das casas — Cofre Dourado ──────────────────────────────── */
+
+.casa-estrela {
+  background: linear-gradient(160deg, #FFE9A0 0%, #E0A91A 50%, #8a5a0d 100%);
+}
+.casa-estrela .casa-nome,
+.casa-estrela .casa-num { color: #3D2603; text-shadow: 0 1px 0 rgba(255,235,170,0.6) }
+
+.casa-bolsa       { background: linear-gradient(160deg, #5be5a0 0%, #1FA463 50%, #0d5a36 100%); }
+.casa-emergencias { background: linear-gradient(160deg, #ff8585 0%, #c43030 50%, #6b1313 100%); }
+.casa-sonhos      { background: linear-gradient(160deg, #c79bff 0%, #6c5ce7 50%, #2e2095 100%); }
+.casa-inquebravelis { background: linear-gradient(160deg, #6cb6f2 0%, #1e6fc2 50%, #0a3868 100%); }
+.casa-compra      { background: linear-gradient(160deg, #4bd6c0 0%, #0e9d8b 50%, #0a4f4a 100%); }
+.casa-bonus       { background: linear-gradient(160deg, #6fe5a4 0%, #1fa463 50%, #0a5230 100%); }
+.casa-penalidade  { background: linear-gradient(160deg, #ff7060 0%, #b02f1f 50%, #501010 100%); }
 
 .casa-inicio {
-  background: linear-gradient(145deg, #ff7675, #c0392b);
-  box-shadow: inset 0 -3px 0 rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.25);
+  background: linear-gradient(160deg, #FFF7CC 0%, #FFD15C 50%, #B8801A 100%);
   cursor: pointer;
 }
-.casa-inicio:active {
-  filter: brightness(1.2);
-}
-.casa-estrela {
-  background: linear-gradient(145deg, #ffeaa7, #e17055);
-  box-shadow: inset 0 -3px 0 rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.25);
-}
-.casa-bolsa {
-  background: linear-gradient(145deg, #00cec9, #00b894);
-  box-shadow: inset 0 -3px 0 rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.25);
-}
-.casa-emergencias {
-  background: linear-gradient(145deg, #fd79a8, #d63031);
-  box-shadow: inset 0 -3px 0 rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.25);
-}
-.casa-sonhos {
-  background: linear-gradient(145deg, #a29bfe, #6c5ce7);
-  box-shadow: inset 0 -3px 0 rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.25);
-}
-.casa-inquebravelis {
-  background: linear-gradient(145deg, #74b9ff, #0984e3);
-  box-shadow: inset 0 -3px 0 rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.25);
-}
-.casa-compra {
-  background: linear-gradient(145deg, #55efc4, #00b894);
-  box-shadow: inset 0 -3px 0 rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.25);
-}
-.casa-bonus {
-  background: linear-gradient(145deg, #6fcf97, #27ae60);
-  box-shadow: inset 0 -3px 0 rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.25);
-}
-.casa-penalidade {
-  background: linear-gradient(145deg, #e74c3c, #922b21);
-  box-shadow: inset 0 -3px 0 rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.25);
-}
-.casa-neutra {
-  background: linear-gradient(145deg, #636e72, #2d3436);
-  box-shadow: inset 0 -3px 0 rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.25);
-}
+.casa-inicio .casa-nome,
+.casa-inicio .casa-num { color: #3D2603; text-shadow: 0 1px 0 rgba(255,235,170,0.6) }
+.casa-inicio:active { filter: brightness(1.2) }
 
-/* ── Piões ──────────────────────────────────────────────────── */
+.casa-neutra { background: linear-gradient(160deg, #6a7488 0%, #2b323f 50%, #14181f 100%); }
+
+/* ── Piões ────────────────────────────────────────────────────────── */
 
 .casa-pioes {
   display: flex;
   flex-wrap: wrap;
-  gap: 1px;
+  gap: 2px;
   min-height: 8px;
   justify-content: center;
   align-items: center;
+  margin-top: 1px;
 }
 
 .piao {
-  width: clamp(15px, 2.6vmin, 34px);
-  height: clamp(15px, 2.6vmin, 34px);
+  width:  clamp(16px, 2.6vmin, 30px);
+  height: clamp(16px, 2.6vmin, 30px);
   border-radius: 50%;
-  border: 2px solid rgba(255,255,255,0.9);
+  border: 2px solid rgba(255,255,255,0.85);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(0.38rem, 0.85vmin, 1rem);
+  font-size: clamp(8px, 1vmin, 12px);
   font-weight: 900;
   color: #fff;
-  text-shadow: 0 0 3px rgba(0,0,0,1);
+  text-shadow: 0 0 3px rgba(0,0,0,0.95);
+  overflow: hidden;
   flex-shrink: 0;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.4);
+  box-shadow:
+    0 3px 6px rgba(0,0,0,0.6),
+    inset 0 1px 0 rgba(255,255,255,0.4),
+    inset 0 -2px 3px rgba(0,0,0,0.25);
+}
+.piao img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .piao-ativo {
+  border-color: #FFD15C;
+  box-shadow:
+    0 0 14px rgba(255,209,92,0.85),
+    0 0 28px rgba(255,209,92,0.4),
+    inset 0 1px 0 rgba(255,255,255,0.5);
+  width:  clamp(20px, 3.1vmin, 36px);
+  height: clamp(20px, 3.1vmin, 36px);
+  font-size: clamp(0.5rem, 1.1vmin, 1rem);
   animation: piscar 0.8s step-start infinite;
-  border-color: gold;
-  box-shadow: 0 0 10px gold, 0 0 20px rgba(255,215,0,0.5);
-  width: clamp(18px, 3.1vmin, 40px);
-  height: clamp(18px, 3.1vmin, 40px);
-  font-size: clamp(0.45rem, 1vmin, 1.2rem);
 }
 
 @keyframes piscar {
   0%, 100% { opacity: 1; }
-  50%       { opacity: 0; }
+  50%      { opacity: 0; }
 }
 
-/* ── Destaque visual de posições dos jogadores ──────────────── */
+/* ── Destaque de casas com jogador ─────────────────────────────────── */
 
 .casa-com-jogador {
-  outline: 2px solid rgba(255,255,255,0.45);
-  outline-offset: -2px;
+  outline: 1px solid rgba(255,235,170,0.65);
+  outline-offset: -1px;
 }
 
 .casa-jogador-ativo {
-  outline: 3px solid gold !important;
-  outline-offset: -3px;
+  outline: 2px solid #FFE9A0 !important;
+  outline-offset: -2px;
   box-shadow:
-    0 0 28px rgba(255,215,0,0.75),
-    0 0 55px rgba(255,215,0,0.4),
-    inset 0 -3px 0 rgba(0,0,0,0.45),
+    0 0 18px rgba(255,209,92,0.7),
+    0 0 38px rgba(255,209,92,0.35),
     inset 0 1px 0 rgba(255,255,255,0.25) !important;
   z-index: 5;
 }
 
-/* ── Animação de salto do pião ──────────────────────────────── */
+/* ── Animação de salto do pião (mantida) ───────────────────────────── */
 
 @keyframes piaoSalta {
   0%   { transform: translateY(0)    scale(1);    }
@@ -280,265 +307,312 @@ body {
   75%  { transform: translateY(-4px) scale(1.1);  }
   100% { transform: translateY(0)    scale(1);    }
 }
-
 .piao-movendo {
   animation: piaoSalta 0.3s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
 
-/* ── Centro do tabuleiro ────────────────────────────────────── */
+@keyframes piaoAndando {
+  0%   { transform: translateY(0px)  rotate(0deg);  }
+  25%  { transform: translateY(-8px) rotate(-6deg); }
+  50%  { transform: translateY(0px)  rotate(0deg);  }
+  75%  { transform: translateY(-8px) rotate(6deg);  }
+  100% { transform: translateY(0px)  rotate(0deg);  }
+}
+.piao-andando { animation: piaoAndando 0.4s infinite; }
 
-.tabuleiro-centro {
-  background:
-    radial-gradient(ellipse at 30% 25%, rgba(255,215,0,0.05) 0%, transparent 55%),
-    radial-gradient(ellipse at 70% 75%, rgba(80,120,255,0.05) 0%, transparent 55%),
-    linear-gradient(135deg, #060e20 0%, #0a1530 50%, #060e20 100%);
-  border-radius: 8px;
+/* ── Dono da casa ──────────────────────────────────────────────────── */
+
+.casa-dono {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.piao-dono {
+  width:  clamp(10px, 1.4vmin, 17px);
+  height: clamp(10px, 1.4vmin, 17px);
+  border-radius: 50%;
+  border: 1.5px solid rgba(255,255,255,0.85);
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  border: 1px solid rgba(255,215,0,0.12);
-  position: relative;
+  font-size: clamp(0.2rem, 0.5vmin, 0.55rem);
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 0 2px rgba(0,0,0,1);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.8);
   overflow: hidden;
 }
 
-/* Dot grid pattern */
+/* ── Centro do tabuleiro — Cofre Dourado v2 ───────────────────────── */
+
+.tabuleiro-centro {
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255,209,92,0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 100%, rgba(31,164,99,0.06) 0%, transparent 50%),
+    linear-gradient(180deg, #100a02 0%, #050300 100%);
+  border-radius: 10px;
+  border: 1px solid rgba(255,209,92,0.18);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 12px 12px 8px;
+  position: relative;
+  overflow: hidden;
+  color: #fff8e3;
+}
+
 .tabuleiro-centro::before {
   content: '';
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(circle, rgba(255,215,0,0.035) 1px, transparent 1px);
-  background-size: 18px 18px;
+  background:
+    repeating-linear-gradient(0deg,  rgba(255,209,92,0.025) 0 1px, transparent 1px 24px),
+    repeating-linear-gradient(90deg, rgba(255,209,92,0.025) 0 1px, transparent 1px 24px);
   pointer-events: none;
 }
 
-/* Corner ornaments */
 .tabuleiro-centro::after {
   content: '';
   position: absolute;
   inset: 8px;
-  border: 1px solid rgba(255,215,0,0.06);
-  border-radius: 5px;
+  border: 1px solid rgba(255,209,92,0.10);
+  border-radius: 6px;
   pointer-events: none;
 }
 
-.centro-logo {
-  font-size: clamp(2.2rem, 4.5vmin, 5.5rem);
-  filter: drop-shadow(0 0 18px rgba(255,215,0,0.55));
-  line-height: 1;
+/* ── Header: medalhão + título (horizontal) ──────────────────────── */
+
+.centro-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(8px, 1.5vmin, 18px);
+  width: 100%;
   position: relative;
+  z-index: 1;
+}
+
+.centro-logo {
+  width: clamp(38px, 5vmin, 64px);
+  height: clamp(38px, 5vmin, 64px);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cinzel', serif;
+  font-weight: 900;
+  font-size: clamp(1.3rem, 2.6vmin, 2.8rem);
+  background: radial-gradient(circle at 35% 30%, #FFF6D1 0%, #FFD15C 25%, #C7891A 60%, #6e4707 100%);
+  box-shadow:
+    inset 0 0 0 2px #B07A12,
+    inset 0 0 14px rgba(0,0,0,0.35),
+    0 0 24px rgba(255,209,92,0.5);
+  color: #5a3a05;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+  flex-shrink: 0;
 }
 
 .centro-titulo {
-  font-size: clamp(0.72rem, 1.5vmin, 1.8rem);
-  font-weight: 900;
-  text-align: center;
-  color: #ffd700;
+  font-family: 'Anton', sans-serif;
+  font-size: clamp(0.85rem, 1.8vmin, 2rem);
+  font-weight: 400;
+  text-align: left;
+  color: #FFE9A0;
   text-shadow:
-    0 0 24px rgba(255,215,0,0.7),
-    0 0 8px rgba(255,215,0,0.4),
+    0 0 16px rgba(255,209,92,0.55),
     0 2px 4px rgba(0,0,0,0.6);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  line-height: 1.35;
+  letter-spacing: 0.12em;
+  line-height: 0.95;
+}
+.centro-titulo small {
+  display: block;
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 0.45em;
+  letter-spacing: 0.32em;
+  margin-top: 4px;
+  opacity: 0.75;
+  text-transform: uppercase;
+}
+
+/* ── Game strip: dado + pílulas de estado ─────────────────────────── */
+
+.centro-game-strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 2vmin, 22px);
+  width: 100%;
   position: relative;
+  z-index: 1;
+  margin-top: 2px;
 }
 
 .centro-dado {
-  font-size: clamp(3.2rem, 6.5vmin, 8rem);
+  font-size: clamp(2.4rem, 5vmin, 6rem);
   line-height: 1;
   filter:
     drop-shadow(0 6px 12px rgba(0,0,0,0.6))
-    drop-shadow(0 0 20px rgba(255,215,0,0.15));
-  cursor: default;
-  transition: transform 0.25s;
-  position: relative;
+    drop-shadow(0 0 24px rgba(255,209,92,0.3));
+  flex-shrink: 0;
 }
-
 .centro-dado.acender {
   animation: acenderDado 0.4s ease-out;
 }
 @keyframes acenderDado {
-  0%   { transform: scale(0.6); filter: brightness(3) drop-shadow(0 0 30px gold); }
+  0%   { transform: scale(0.6); filter: brightness(3) drop-shadow(0 0 30px #FFD15C); }
   60%  { transform: scale(1.25); }
   100% { transform: scale(1); filter: drop-shadow(0 6px 12px rgba(0,0,0,0.6)); }
 }
 
-.centro-player {
-  font-size: clamp(0.58rem, 1.2vmin, 1.4rem);
-  color: rgba(255,255,255,0.62);
-  text-align: center;
-  position: relative;
-  letter-spacing: 0.03em;
-}
-
-.centro-legenda {
+.centro-game-info {
   display: flex;
+  gap: clamp(4px, 0.8vmin, 8px);
   flex-wrap: wrap;
-  gap: 3px 10px;
   justify-content: center;
-  font-size: clamp(0.45rem, 1.8vmin, 2.05rem);
-  color: rgba(255,255,255,0.32);
-  padding: 0 6px;
-  position: relative;
 }
 
-/* ── Dado 3D no navbar ───────────────────────────────────── */
-
-.btn-dado-3d {
-  background: linear-gradient(145deg, #fff9e0, #fdcb6e, #e8a838);
-  border: none;
-  border-radius: 12px;
-  padding: 3px 10px;
-  cursor: pointer;
-  box-shadow:
-    4px 4px 0 rgba(100,60,0,0.65),
-    0 6px 16px rgba(0,0,0,0.45),
-    inset 0 1px 0 rgba(255,255,255,0.5);
-  transition: box-shadow 0.08s, top 0.08s, filter 0.15s;
-  position: relative;
-  top: 0;
+.info-pill {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(3px, 0.6vmin, 5px) clamp(8px, 1.2vmin, 12px);
+  border-radius: 8px;
+  background: rgba(255,235,170,0.04);
+  border: 1px solid rgba(255,209,92,0.18);
+  font-family: 'Inter', sans-serif;
   line-height: 1;
-  user-select: none;
+  min-width: clamp(46px, 7vmin, 80px);
 }
-
-.btn-dado-3d:hover {
-  filter: brightness(1.08);
+.info-pill .lbl {
+  font-size: clamp(0.42rem, 0.85vmin, 0.7rem);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(255,235,170,0.55);
+  margin-bottom: 3px;
+  font-weight: 600;
 }
-
-.btn-dado-3d:active {
-  top: 4px;
-  box-shadow:
-    0 0 6px rgba(0,0,0,0.4),
-    inset 0 1px 0 rgba(255,255,255,0.3);
+.info-pill strong {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(0.7rem, 1.25vmin, 1.15rem);
+  color: #FFE9A0;
+  font-weight: 700;
+  letter-spacing: 0;
 }
+.info-pill.pergunta-pill strong { color: #27D17C }
+.info-pill.pergunta-pill        { border-color: rgba(39,209,124,0.35) }
 
-#faceDado {
-  font-size: 2rem;
-  display: block;
-  transition: transform 0.1s;
-}
+/* ── Card "Vez de [Jogador]" — sempre o jogador ATIVO ──────────────── */
 
-@keyframes shakeDado {
-  0%   { transform: translate(0,0) rotate(0deg); }
-  10%  { transform: translate(-5px,-2px) rotate(-14deg); }
-  20%  { transform: translate(5px, 3px) rotate(14deg); }
-  30%  { transform: translate(-4px, 3px) rotate(-10deg); }
-  40%  { transform: translate(4px,-3px) rotate(10deg); }
-  50%  { transform: translate(-3px,-4px) rotate(-7deg); }
-  60%  { transform: translate(3px, 4px) rotate(7deg); }
-  70%  { transform: translate(-2px, 2px) rotate(-4deg); }
-  80%  { transform: translate(2px,-2px) rotate(4deg); }
-  90%  { transform: translate(-1px, 0) rotate(-2deg); }
-  100% { transform: translate(0,0) rotate(0deg); }
-}
-
-.btn-dado-3d.rolando {
-  animation: shakeDado 0.72s ease-out;
-  pointer-events: none;
-}
-
-/* ── Navegação entre jogadores ◄ | ▶ ───────────────────────── */
-.nav-jogador-ctrl {
+.centro-jogador-ativo {
   display: flex;
   align-items: center;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.18);
-  border-radius: 20px;
-  padding: 2px 3px;
-  gap: 0;
-}
-
-.nav-btn {
-  background: none;
-  border: none;
-  color: rgba(255,255,255,0.9);
-  padding: 3px 10px;
-  cursor: pointer;
-  border-radius: 16px;
-  font-size: 0.8rem;
-  line-height: 1;
-  transition: background 0.15s;
-}
-.nav-btn:hover     { background: rgba(255,255,255,0.18); }
-.nav-btn-next      { color: #74b9ff; }
-.nav-btn-next:hover{ background: rgba(116,185,255,0.2); }
-
-.nav-label {
-  font-size: 0.6rem;
-  font-weight: 700;
-  color: rgba(255,255,255,0.75);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  padding: 0 5px;
-  white-space: nowrap;
-  user-select: none;
-}
-
-/* ── Cronômetro ─────────────────────────────────────────────── */
-.cronometro {
-  font-family: monospace;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: rgba(255,255,255,0.75);
-  padding: 3px 9px;
-  border-radius: 8px;
-  border: 2px solid transparent;
-  white-space: nowrap;
-  cursor: default;
-  transition: border-color 0.4s, color 0.4s, box-shadow 0.4s;
-}
-
-.cronometro.cronometro-amarelo {
-  border-color: #ffd700;
-  color: #ffd700;
-  box-shadow: 0 0 10px rgba(255,215,0,0.35);
-}
-
-.cronometro.cronometro-vermelho {
-  border-color: #ff4444;
-  color: #ff6b6b;
-  box-shadow: 0 0 10px rgba(255,68,68,0.45);
-  animation: piscar-crono 1s ease-in-out infinite;
-}
-
-@keyframes piscar-crono {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.55; }
-}
-
-/* Borda de alerta no tabuleiro */
-.tabuleiro-frame.alerta-amarelo {
-  box-shadow:
-    4px 4px 0 rgba(100,60,0,0.5),
-    0 0 0 4px #ffd700,
-    0 0 28px rgba(255,215,0,0.35);
-  transition: box-shadow 0.4s;
-}
-
-.tabuleiro-frame.alerta-vermelho {
-  box-shadow:
-    4px 4px 0 rgba(100,60,0,0.5),
-    0 0 0 4px #ff4444,
-    0 0 28px rgba(255,68,68,0.4);
-  animation: piscar-borda 1.2s ease-in-out infinite;
-}
-
-@keyframes piscar-borda {
-  0%, 100% { box-shadow: 4px 4px 0 rgba(100,60,0,0.5), 0 0 0 4px #ff4444, 0 0 28px rgba(255,68,68,0.4); }
-  50%       { box-shadow: 4px 4px 0 rgba(100,60,0,0.5), 0 0 0 4px #ff7777, 0 0 48px rgba(255,68,68,0.65); }
-}
-
-/* ── Centro: ranking ────────────────────────────────────────── */
-.centro-ranking {
-  font-size: clamp(0.62rem, 1.25vmin, 1.5rem);
-  color: rgba(255,215,0,0.75);
-  letter-spacing: 0.04em;
+  gap: clamp(8px, 1.4vmin, 14px);
+  padding: clamp(6px, 1vmin, 12px) clamp(10px, 1.6vmin, 18px);
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(255,235,170,0.09), rgba(255,235,170,0.02));
+  border: 1px solid rgba(255,209,92,0.35);
+  width: 92%;
   position: relative;
+  z-index: 1;
+  box-shadow:
+    0 0 22px rgba(255,209,92,0.15),
+    inset 0 1px 0 rgba(255,235,170,0.12);
 }
 
-/* ── Centro: 3 colunas (cofrinhos | bens | ações) ───────────── */
+.ja-avatar {
+  width: clamp(30px, 4.4vmin, 52px);
+  height: clamp(30px, 4.4vmin, 52px);
+  border-radius: 50%;
+  border: 2px solid #FFE9A0;
+  background: #444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  color: #fff;
+  font-size: clamp(0.75rem, 1.5vmin, 1.3rem);
+  overflow: hidden;
+  flex-shrink: 0;
+  text-shadow: 0 0 3px rgba(0,0,0,0.8);
+  box-shadow:
+    0 0 12px rgba(255,209,92,0.4),
+    inset 0 0 6px rgba(0,0,0,0.2);
+}
+.ja-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
+.ja-info {
+  flex: 1;
+  min-width: 0;
+}
+.ja-label {
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(0.48rem, 0.95vmin, 0.78rem);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: rgba(255,235,170,0.6);
+  font-weight: 600;
+  line-height: 1;
+}
+.ja-nome {
+  font-family: 'Anton', sans-serif;
+  font-size: clamp(0.95rem, 1.85vmin, 1.7rem);
+  letter-spacing: 0.03em;
+  color: #fff8e3;
+  text-shadow: 0 0 14px rgba(255,209,92,0.35);
+  margin-top: 3px;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ja-ranking {
+  font-family: 'Anton', sans-serif;
+  font-size: clamp(1rem, 2.2vmin, 2rem);
+  letter-spacing: 0.04em;
+  color: #FFD15C;
+  flex-shrink: 0;
+  text-shadow: 0 0 14px rgba(255,209,92,0.55);
+  line-height: 1;
+}
+
+/* ── Tag "Consultando: [Jogador]" (só aparece em modo consulta) ────── */
+
+.centro-consulta-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(0.55rem, 1.05vmin, 0.9rem);
+  font-weight: 500;
+  color: rgba(180,220,255,0.85);
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(95,190,255,0.06);
+  border: 1px dashed rgba(95,190,255,0.4);
+  position: relative;
+  z-index: 1;
+}
+.centro-consulta-tag strong {
+  color: #5fbeff;
+  font-weight: 700;
+}
+
+/* ── Painel 3 colunas (cofrinhos | bens | ações) — pré-existente ───── */
+
 .centro-ativos {
   display: flex;
   width: 100%;
@@ -546,6 +620,8 @@ body {
   justify-content: center;
   gap: 0;
   position: relative;
+  z-index: 1;
+  margin-top: 4px;
 }
 
 .centro-ativos-col {
@@ -554,40 +630,37 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 0 4px;
+  gap: 3px;
+  padding: 0 6px;
 }
 
 .centro-ativos-label {
-  font-size: clamp(0.38rem, 0.9vmin, 1rem);
-  color: rgba(255,215,0,0.45);
+  font-family: 'Anton', sans-serif;
+  font-size: clamp(0.5rem, 1.05vmin, 1.05rem);
+  color: #FFE9A0;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-weight: 700;
+  letter-spacing: 0.2em;
   white-space: nowrap;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(255,209,92,0.25);
+  width: 92%;
+  text-align: center;
 }
 
 .centro-ativos-sep {
   width: 1px;
   align-self: stretch;
-  background: rgba(255,215,0,0.12);
-  margin: 2px 0;
+  background: rgba(255,209,92,0.18);
+  margin: 20px 0 0;
 }
 
 .centro-cofrinhos {
-  font-size: clamp(0.44rem, 1.7vmin, 1.9rem);
-  color: rgba(255,255,255,0.55);
+  font-size: clamp(0.5rem, 1.65vmin, 1.85rem);
+  color: rgba(255,248,227,0.85);
   text-align: center;
-  line-height: 1.65;
+  line-height: 1.7;
   position: relative;
-}
-
-.centro-acoes {
-  font-size: clamp(0.4rem, 1.5vmin, 1.6rem);
-  color: rgba(100,200,255,0.8);
-  text-align: center;
-  line-height: 1.65;
-  position: relative;
+  font-family: 'Inter', sans-serif;
 }
 
 .centro-bens-grid {
@@ -596,61 +669,104 @@ body {
   gap: 3px 4px;
   width: 100%;
 }
+
 .centro-bem-cell {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0;
-}
-.centro-doacao-link {
-  cursor: pointer;
-  border-bottom: 1px dotted rgba(255,215,0,0.4);
-  transition: color 0.15s;
-}
-.centro-doacao-link:hover { color: #ffd700; }
-
-.centro-cell-clicavel {
-  cursor: pointer;
+  padding: 4px 3px;
   border-radius: 6px;
-  transition: background 0.15s;
+  background: rgba(255,235,170,0.04);
+  border: 1px solid rgba(255,235,170,0.06);
+  transition: background 0.15s, border-color 0.15s;
 }
+
+.centro-cell-clicavel { cursor: pointer }
 .centro-cell-clicavel:hover {
-  background: rgba(255,255,255,0.08);
+  background: rgba(255,235,170,0.1);
+  border-color: rgba(255,209,92,0.28);
 }
 .centro-cell-clicavel:hover .centro-bem-ico {
   display: inline-block;
-  transform: scale(1.2);
+  transform: scale(1.18);
   transition: transform 0.15s;
 }
-.centro-bem-ico {
-  font-size: clamp(0.85rem, 2.4vmin, 2.4rem);
-  line-height: 1.1;
+
+.centro-doacao-link {
+  cursor: pointer;
+  border-bottom: 1px dotted rgba(255,209,92,0.4);
+  transition: color 0.15s;
 }
+.centro-doacao-link:hover { color: #FFE9A0 }
+
+.centro-bem-ico  { font-size: clamp(0.85rem, 2.2vmin, 2.2rem); line-height: 1.1 }
 .centro-bem-nome-s {
-  font-size: clamp(0.3rem, 0.72vmin, 0.8rem);
-  color: rgba(255,200,100,0.5);
+  font-size: clamp(0.32rem, 0.78vmin, 0.82rem);
+  color: rgba(255,209,92,0.55);
   line-height: 1.1;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 .centro-bem-qtd {
-  font-size: clamp(0.38rem, 1vmin, 1.1rem);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(0.46rem, 1.1vmin, 1.18rem);
   font-weight: 700;
-  color: rgba(255,200,100,0.9);
+  color: #FFE9A0;
   line-height: 1.2;
 }
 .centro-bem-lucro {
-  font-size: clamp(0.33rem, 0.85vmin, 0.8rem);
+  font-size: clamp(0.35rem, 0.85vmin, 0.82rem);
   font-weight: 600;
-  color: #66bb6a;
+  color: #27D17C;
   line-height: 1;
   min-height: 0.8em;
 }
+
 .centro-casas-tab {
-  font-size: clamp(0.48rem, 0.95vmin, 0.75rem);
-  color: rgba(180,220,255,0.75);
+  font-size: clamp(0.5rem, 0.95vmin, 0.78rem);
+  color: rgba(180,220,255,0.8);
   text-align: center;
   padding: 2px 1px;
   line-height: 1.35;
 }
+
+/* ── Legenda ───────────────────────────────────────────────────────── */
+
+.centro-legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 6px;
+  justify-content: center;
+  padding: 6px 4px 0;
+  margin-top: auto;
+  border-top: 1px solid rgba(255,209,92,0.12);
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+
+.legenda-item {
+  background: transparent;
+  border: 1px solid rgba(255,209,92,0.18);
+  color: rgba(255,235,170,0.7);
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(0.48rem, 0.95vmin, 0.88rem);
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.legenda-item:hover {
+  background: rgba(255,235,170,0.08);
+  color: #FFE9A0;
+  border-color: rgba(255,209,92,0.4);
+}
+
+/* compatibilidade — esconde o antigo centroPlayer/centroRanking se 
+   ainda existirem no DOM (sem efeito após substituir buildCentro) */
+.centro-player, .centro-ranking { display: none }
 
 /* ── Navbar ─────────────────────────────────────────────────── */
 .navbar-brand { font-weight: 700; font-size: 0.9rem; }
