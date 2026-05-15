@@ -4,34 +4,78 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Economia dos Milionários</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Cinzel:wght@700;900&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/intro.css">
 </head>
 <body>
 
 <div id="intro">
 
-  <div id="luxo"></div>
+  <!-- back layers -->
+  <div class="rays"></div>
+  <div class="hex"></div>
+  <div class="dust" id="dust"></div>
+  <div class="floor"></div>
 
-  <button id="pular">⏩ Pular Intro</button>
+  <!-- stage -->
+  <div class="stage">
+    <div class="spotlight"></div>
 
-  <div id="titulo">ECONOMIA DOS MILIONÁRIOS</div>
+    <div id="coin-wrap">
+      <div id="coin"></div>
+    </div>
 
-  <div id="subtitulo">Estratégia e uma pitada de sorte dominará o jogo.</div>
+    <div id="kaique">
+      <div class="kaique-base"></div>
+      <img src="icons/kaique-grafico.png" alt="Kaique — mascote do jogo">
+      <div class="kaique-ring"></div>
+    </div>
 
-  <div id="cofre">
-    <div id="porta"></div>
+    <div class="rain" id="rain"></div>
   </div>
 
-  <div id="patinhas">
-    <img src="img/tioPatinhas.png" alt="Tio Patinhas">
+  <!-- foreground -->
+  <div class="vignette"></div>
+
+  <div class="corner tl"></div>
+  <div class="corner tr"></div>
+  <div class="corner bl"></div>
+  <div class="corner br"></div>
+
+  <div id="logo">
+    <div class="logo-eyebrow">UM JOGO DE TABULEIRO SOBRE</div>
+    <div class="logo-pre">ECONOMIA · DOS</div>
+    <div class="logo-main">
+      <span>M</span><span>I</span><span>L</span><span>I</span><span>O</span><span>N</span><span>Á</span><span>R</span><span>I</span><span>O</span><span>S</span>
+    </div>
+    <div class="logo-underline"></div>
   </div>
 
+  <div id="tagline">
+    Estratégia, bom senso e perseverança · <em>definem quem vence</em>.
+  </div>
+
+  <button id="cta">
+    <span class="dot"></span>
+    <span>Entrar na partida</span>
+    <span class="arrow">›</span>
+  </button>
+
+  <!-- cinemascope letterbox bars -->
+  <div class="letterbox top"></div>
+  <div class="letterbox bottom"></div>
+
+  <div class="flash"></div>
+  <div class="shockwave"></div>
+
+  <button id="skip">Pular intro <span class="timer" id="timer">12</span></button>
 </div>
 
-<!-- Som de moeda (pixabay — livre para uso) -->
-<audio id="coinSound" preload="auto">
-  <source src="https://cdn.pixabay.com/audio/2022/03/15/audio_c8c8a73467.mp3" type="audio/mpeg">
-</audio>
+<!-- Sons (Pixabay, livres para uso) -->
+<audio id="coinSnd"   preload="auto" src="https://cdn.pixabay.com/audio/2022/03/15/audio_c8c8a73467.mp3"></audio>
+<audio id="whooshSnd" preload="auto" src="https://cdn.pixabay.com/audio/2022/03/24/audio_d1718beaea.mp3"></audio>
 
 <!-- GSAP -->
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
@@ -42,7 +86,7 @@
   if (!isLoggedIn()) window.location.href = '/login.html';
 </script>
 
-<!-- Animação (script regular — depende de GSAP global) -->
+<!-- Animação principal (script regular — depende de GSAP global) -->
 <script src="js/intro.js" defer></script>
 
 </body>
