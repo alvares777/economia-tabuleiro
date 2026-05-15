@@ -2,7 +2,7 @@
 // 5 atos: Aproximação → Revelação → Herói → Logo → CTA
 // Requer GSAP carregado globalmente antes deste arquivo.
 
-const DESTINO = '/lista.html';        // ← destino após a intro
+const DESTINO = (function(){ try { return localStorage.getItem('economia_token') ? '/lista.html' : '/login.html'; } catch(e){ return '/login.html'; } })();
 const REDIRECT_ON_COMPLETE = true;    // ← em produção: true
 
 const $ = (s) => document.querySelector(s);

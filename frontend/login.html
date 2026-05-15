@@ -58,7 +58,7 @@
       const { token, user } = await apiLogin(email, senha);
       setToken(token);
       setUser(user);
-      window.location.href = '/intro.html';
+      window.location.href = '/lista.html';
     } catch (err) {
       alerta.className = 'alert alert-danger';
       alerta.textContent = err.message;

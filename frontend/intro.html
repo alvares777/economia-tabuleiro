@@ -81,9 +81,13 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 
 <!-- Verificação de autenticação (antes da animação) -->
-<script type="module">
-  import { isLoggedIn } from './js/auth.js';
-  if (!isLoggedIn()) window.location.href = '/login.html';
+<script>
+  // Logado sem ?replay=1 → pula a intro e vai direto para a lista
+  try {
+    if (localStorage.getItem('economia_token') && !new URLSearchParams(location.search).get('replay')) {
+      window.location.replace('/lista.html');
+    }
+  } catch(e) {}
 </script>
 
 <!-- Animação principal (script regular — depende de GSAP global) -->
