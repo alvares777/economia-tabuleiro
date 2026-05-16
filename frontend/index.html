@@ -43,6 +43,7 @@
         <li><a class="dropdown-item text-warning" href="#" onclick="confirmarNovaPartida()">🆕 Nova Partida</a></li>
         <li><hr class="dropdown-divider"></li>
         <li><a class="dropdown-item" href="/intro.html?replay=1">🎬 Intro</a></li>
+        <li><a class="dropdown-item" href="/tutorial.html" target="_blank">📖 Como Jogar</a></li>
         <li><a class="dropdown-item text-danger" href="#" onclick="window.fazerLogout()">🚪 Sair</a></li>
       </ul>
     </div>
@@ -81,11 +82,6 @@
 
     <!-- Botões de ação rápida -->
     <div class="d-flex gap-1 ms-2 flex-wrap">
-      <!-- Dado -->
-      <button id="btnDadoRolar" class="btn-dado-3d" onclick="animarERolarDado()" title="Clique para rolar o dado!">
-        <span id="faceDado">🎲</span>
-      </button>
-
       <!-- Movimentos (visíveis só após rolar o dado) -->
       <div id="grpMovimento" class="d-none gap-1">
         <button class="btn btn-sm btn-success" onclick="promoverValorMovimento('avancar')">▶ Avança</button>
@@ -105,8 +101,13 @@
         <span id="indicadorJogadorAtivo" class="small fw-bold text-white"></span>
       </div>
 
-      <!-- Botão FIM DO TURNO -->
-      <button id="btnFim" class="btn btn-sm btn-success fw-bold" onclick="proximoJogador()" title="Encerra o turno e passa para o próximo jogador" disabled>✅ PRÓXIMO</button>
+      <!-- Dado + Botão FIM DO TURNO -->
+      <div class="d-flex align-items-center gap-1">
+        <button id="btnDadoRolar" class="btn-dado-3d btn-dado-sm" onclick="animarERolarDado()" title="Clique para rolar o dado!">
+          <span id="faceDado">🎲</span>
+        </button>
+        <button id="btnFim" class="btn btn-sm btn-success fw-bold" onclick="proximoJogador()" title="Encerra o turno e passa para o próximo jogador" disabled>✅ PRÓXIMO</button>
+      </div>
 
       <!-- Cronômetro -->
       <span id="cronometro" class="cronometro">⏱ --:--</span>
@@ -1230,6 +1231,29 @@ function promoverValorMovimento(acao) {
 
 <!-- DADO ANIMADO -->
 <div id="dado-animado" style="display:none">🎲</div>
+
+<!-- MODAL ESCOLHER COFRINHO (N.QUEBRE) -->
+<div class="modal fade" id="modalEscolherCofrinho" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark text-light border-warning">
+      <div class="modal-header border-warning">
+        <h5 class="modal-title text-warning">💪 N.QUEBRE — Escolha o Cofrinho</h5>
+      </div>
+      <div class="modal-body text-center">
+        <p class="text-light mb-1">Valor obrigatório a depositar:</p>
+        <h4 class="text-warning fw-bold mb-3">R$ <span id="inquebraveisValorModal">0</span></h4>
+        <p class="text-light small mb-4">Escolha em qual cofrinho o valor será depositado integralmente:</p>
+        <div class="d-grid gap-2">
+          <button class="btn btn-primary"          onclick="window._aplicarInquebraveis(0)">🚨 Emergências</button>
+          <button class="btn btn-success"          onclick="window._aplicarInquebraveis(1)">💭 Sonhos</button>
+          <button class="btn btn-warning text-dark" onclick="window._aplicarInquebraveis(2)">👴 Aposentadoria</button>
+          <button class="btn btn-info text-dark"   onclick="window._aplicarInquebraveis(3)">❤️ Doações</button>
+        </div>
+        <p class="text-light small mt-3 mb-0 opacity-75">⚠️ Você não pode avançar sem escolher um cofrinho.</p>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL CONFIRMA VOLTAR -->
 <div class="modal fade" id="modalConfirmaVoltar" tabindex="-1">

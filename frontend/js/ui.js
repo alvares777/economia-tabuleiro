@@ -134,6 +134,20 @@ export function mostrarPergunta(idx) {
   if (btnA) btnA.disabled = !podeMarcar;
   if (btnE) btnE.disabled = !podeMarcar;
 
+  // Se há dado pendente, bloqueia movimento caso o modal seja fechado sem responder
+  if (podeMarcar) {
+    let _respondeu = false;
+    const elModalP = document.getElementById('modalPerguntas');
+    if (btnA) btnA.addEventListener('click', () => { _respondeu = true; }, { once: true });
+    if (btnE) btnE.addEventListener('click', () => { _respondeu = true; }, { once: true });
+    elModalP.addEventListener('hidden.bs.modal', () => {
+      if (!_respondeu) {
+        window._valorDadoAtual = 0;
+        window._syncBotoesMovimento?.();
+      }
+    }, { once: true });
+  }
+
   const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('modalPerguntas'));
   modal.show();
   tocarSom('pergunta');
@@ -275,6 +289,10 @@ export function renderCofrinhos() {
   const nomeCasa = getNomeCasa(state.jogadoresPosicao[p]);
   const saldo    = state.jogadoresDinheiro[p];
 
+  // N.QUEBRE bloqueando depósitos manuais para o jogador ativo
+  const pending  = window._pendingInquebraveis;
+  const bloqueado = pending && pending.player === p && p === state.jogador - 1;
+
   // Regras de saque: EMERG → cofr. 0; SONHOS → cofr. 1; saldo negativo → qualquer
   const podeSacar = (c) => {
     if (saldo < 0) return true;
@@ -283,8 +301,19 @@ export function renderCofrinhos() {
     return false;
   };
 
+  let bannerHtml = '';
+  if (bloqueado) {
+    bannerHtml = `
+      <div class="alert alert-warning d-flex align-items-center justify-content-between gap-2 mb-3 py-2">
+        <span>💪 <strong>N.QUEBRE pendente!</strong> Escolha um cofrinho para aplicar <strong>R$ ${fmt(pending.minimo)}</strong>.</span>
+        <button class="btn btn-warning btn-sm fw-bold flex-shrink-0"
+                onclick="window._abrirModalEscolherCofrinho()">Escolher ▶</button>
+      </div>`;
+  }
+
+  const dis    = bloqueado ? 'disabled' : '';
   const CORES  = ['primary', 'success', 'warning', 'info'];
-  let html = '<div class="row g-3">';
+  let html = bannerHtml + '<div class="row g-3">';
   for (let c = 0; c < 4; c++) {
     const acumulado = calcCofrinho(p, c);
     const rendStr   = c < 3 ? `${state.rendimento}% a.r.` : 'Deduz imposto';
@@ -302,12 +331,12 @@ export function renderCofrinhos() {
             <strong>${NOMES_COFRINHOS[c]}</strong>
           </div>
           <div class="card-body">
-            <p class="mb-1 small text-muted">${rendStr}</p>
+            <p class="mb-1 small text-light">${rendStr}</p>
             <h5 class="card-title">R$ ${fmt(acumulado)}</h5>
             <div class="input-group input-group-sm mt-2">
               <span class="input-group-text">Depositar R$</span>
-              <input type="number" id="depositoCofrinho${c}" class="form-control" min="0" step="1" value="0">
-              <button class="btn btn-outline-primary" onclick="window.depositarCofrinho(${c})">+</button>
+              <input type="number" id="depositoCofrinho${c}" class="form-control" min="0" step="1" value="0" ${dis}>
+              <button class="btn btn-outline-primary" onclick="window.depositarCofrinho(${c})" ${dis}>+</button>
             </div>
             ${saqueHtml}
           </div>

@@ -1004,6 +1004,41 @@ body.login-page {
   overflow: hidden;
 }
 
+/* ── Botão dado (navbar + atalho ao lado de PRÓXIMO) ──────────── */
+.btn-dado-3d {
+  background: rgba(255,235,170,0.07);
+  border: 1px solid rgba(255,209,92,0.35);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 1.55rem;
+  line-height: 1;
+  cursor: pointer;
+  color: inherit;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-dado-3d:hover:not(:disabled) {
+  background: rgba(255,209,92,0.14);
+  border-color: rgba(255,209,92,0.65);
+  transform: scale(1.08);
+}
+.btn-dado-3d:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.btn-dado-3d.rolando {
+  animation: acenderDado 0.4s ease-out infinite alternate;
+}
+
+/* Variante menor — ao lado do botão PRÓXIMO */
+.btn-dado-sm {
+  font-size: 1.05rem;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
 /* ── Modo colocação de bem no campo ───────────────────────────── */
 .bem-campo-valida {
   outline: 2px solid #ffc107 !important;

@@ -52,6 +52,51 @@ const _MSG_INQUEBRAVEIS = 'Você pode ser inquebrável economicamente falando! M
 
 const _NOMES_COF = ['Emergências', 'Sonhos', 'Aposentadoria', 'Doações'];
 
+function _abrirModalEscolherCofrinho() {
+  if (!_pendingInquebraveis) return;
+  const elVal = document.getElementById('inquebraveisValorModal');
+  if (elVal) elVal.textContent = fmt(_pendingInquebraveis.minimo);
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalEscolherCofrinho')).show();
+}
+window._abrirModalEscolherCofrinho = _abrirModalEscolherCofrinho;
+
+window._aplicarInquebraveis = function(c) {
+  if (!_pendingInquebraveis) return;
+  const p     = _pendingInquebraveis.player;
+  const valor = _pendingInquebraveis.minimo;
+
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalEscolherCofrinho')).hide();
+
+  const r = state.rodada - 1;
+  const primeiroAporte = state.jogadoresCofrinhos[p][c].every(v => v === 0);
+  const saldoAntes = state.jogadoresDinheiro[p];
+  state.jogadoresCofrinhos[p][c][r] += valor;
+  state.jogadoresDinheiro[p] -= valor;
+
+  _registrarEvento(p, 'COFRINHO', {
+    descricao: `💪 Inquebráveis → ${_NOMES_COF[c]}: -R$${fmt(valor)}`,
+    valor: -valor,
+    cofrinhoIdx: c,
+    saldoAntes,
+  });
+  if (primeiroAporte) {
+    _registrarEvento(p, 'BONUS_COFRINHO', {
+      descricao: `Primeiro aporte no cofrinho valeu o dobro`,
+      valor: valor,
+      cofrinhoIdx: c,
+      saldoAntes: state.jogadoresDinheiro[p],
+    });
+  }
+
+  _pendingInquebraveis = null;
+  renderCofrinhos();
+  atualizarIndicadores();
+  _atualizarBtnInquebraveis();
+  tocarSom('moeda');
+  agendarAutoSave();
+  mostrarPainel('divTabuleiro');
+};
+
 function _atualizarBtnInquebraveis() {
   const btnFim = document.getElementById('btnFim');
   if (!btnFim) return;
@@ -349,14 +394,16 @@ function _perguntaComResultado(idx, onAcertou, onErrou) {
   const comboDiv = document.getElementById('comboNavPerguntas');
   if (comboDiv) comboDiv.style.display = 'none';
 
-  const modal = new bootstrap.Modal(document.getElementById('modalPerguntas'));
+  const elModal = document.getElementById('modalPerguntas');
+  const modal = new bootstrap.Modal(elModal, { backdrop: 'static', keyboard: false });
+  const btnCloseX = elModal.querySelector('.btn-close');
+  if (btnCloseX) btnCloseX.style.display = 'none';
 
   const restaurar = () => {
     document.getElementById('modalPerguntaFooterNormal').style.display    = '';
     document.getElementById('modalPerguntaFooterResultado').style.display = 'none';
+    if (btnCloseX) btnCloseX.style.display = '';
   };
-
-  const elModal = document.getElementById('modalPerguntas');
 
   document.getElementById('btnQAcertou').onclick = () => {
     restaurar();
@@ -1051,7 +1098,7 @@ function processarCasa(p, dadoValor = 0) {
     const minimo = saldo * 0.70;
     _pendingInquebraveis = { player: p, minimo, cofrinhosTotaisAntes: _somarCofrinhoRodadaAtual(p) };
     _registrarEvento(p, 'INQUEBRAVEIS', {
-      descricao: `💪 INQUEBRÁVEIS (casa ${pos}): deve aplicar no mínimo R$${fmt(minimo)} em cofrinhos`,
+      descricao: `💪 INQUEBRÁVEIS (casa ${pos}): deve aplicar R$${fmt(minimo)} em cofrinhos`,
       valor: 0,
       saldoAntes: saldo,
     });
@@ -1061,7 +1108,7 @@ function processarCasa(p, dadoValor = 0) {
     );
     tocarSom('bom');
     const _mqEl = document.getElementById('modalMensagem');
-    if (_mqEl) _mqEl.addEventListener('hidden.bs.modal', () => mostrarPainel('divCofrinhos'), { once: true });
+    if (_mqEl) _mqEl.addEventListener('hidden.bs.modal', () => _abrirModalEscolherCofrinho(), { once: true });
 
   } else if (nome === 'EMERG') {
     const temSeguradora = (state.jogadoresAcoes?.[p]?.[2] ?? 0) > 0;
@@ -1152,6 +1199,19 @@ window.proximoJogador = function() {
   cobrarJuros();
   receberRendaBens();
   receberDividendos();
+
+  // Multa por saldo negativo ao passar o turno
+  const _pAtual = state.jogador - 1;
+  const _saldoFinal = state.jogadoresDinheiro[_pAtual];
+  if (_saldoFinal < 0) {
+    const multa = Math.round(Math.abs(_saldoFinal) * 0.20 * 100) / 100;
+    state.jogadoresDinheiro[_pAtual] -= multa;
+    _registrarEvento(_pAtual, 'MULTA_SALDO_NEG', {
+      descricao: `⚠️ Multa por saldo negativo ao passar turno: -R$${fmt(multa)} (20% de R$${fmt(Math.abs(_saldoFinal))})`,
+      valor: -multa,
+      saldoAntes: _saldoFinal,
+    });
+  }
 
   let proximo = state.jogador;
   do {
@@ -1604,10 +1664,18 @@ window.sacarCofrinho = function(c) {
     state.jogadoresCofrinhos[p][c][r] *= frac;
   }
   const saldoAntes = state.jogadoresDinheiro[p];
-  state.jogadoresDinheiro[p] += sacar;
+
+  // IR sobre saque emergencial (quando saldo negativo, exceto cofrinho Doações)
+  const irRate  = (saldoAntes < 0 && c !== 3) ? state.impostos / 100 : 0;
+  const irValor = Math.round(sacar * irRate * 100) / 100;
+  const liquido = sacar - irValor;
+
+  state.jogadoresDinheiro[p] += liquido;
   _registrarEvento(p, 'SAQUE_COFRINHO', {
-    descricao: `Saque ${_NOMES_COF[c]}: +R$${fmt(sacar)}`,
-    valor: sacar,
+    descricao: irValor > 0
+      ? `💸 Saque emergencial ${_NOMES_COF[c]}: +R$${fmt(sacar)} (IR ${state.impostos}%: -R$${fmt(irValor)}) → líquido R$${fmt(liquido)}`
+      : `Saque ${_NOMES_COF[c]}: +R$${fmt(sacar)}`,
+    valor: liquido,
     cofrinhoIdx: c,
     saldoAntes,
   });

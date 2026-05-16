@@ -258,7 +258,12 @@ Ao pousar em qualquer casa INQUEBRÁVEIS, o jogador recebe o seguinte alerta:
 
 > *"Você pode ser inquebrável economicamente falando! Mas para isso você precisa aplicar no mínimo 70% do seu saldo atual em Cofrinhos"*
 
-**Regra obrigatória:** o jogador **não pode avançar para o próximo turno** enquanto não depositar em cofrinhos pelo menos **70 % do saldo que tinha ao pousar**. Se o operador tentar avançar sem cumprir a obrigação, o alerta é exibido novamente e o avanço é bloqueado.
+**Regra obrigatória — fluxo obrigatório de escolha:**
+1. Após fechar o alerta, o sistema exibe um modal pedindo ao jogador que **escolha UM cofrinho** (Emergências, Sonhos, Aposentadoria ou Doações).
+2. O sistema **deposita automaticamente os 70% integrais** no cofrinho escolhido — sem possibilidade de distribuir entre vários cofrinhos.
+3. Enquanto a escolha não for feita, os botões de depósito manual no painel Cofrinhos ficam **bloqueados** e o botão PRÓXIMO não avança.
+
+> **Conceito pedagógico:** a casa N.QUEBRE representa uma penalização por falta de planejamento. A obrigatoriedade de concentrar o depósito em um único cofrinho reforça que poupar de forma intencional e consistente é mais eficaz do que dispersar recursos.
 
 ### 8.4 Casas $ — Pagamento Obrigatório de Bem
 
@@ -472,9 +477,35 @@ O saldo pode ficar negativo nas seguintes situações:
 - Pouso em **casa de penalidade** (bônus negativo)
 - Pouso em **casa $** (pagamento obrigatório de bem)
 
-Quando o saldo é negativo, o painel **🐷 Cofrinhos** libera automaticamente o campo de saque em todos os quatro cofrinhos, permitindo ao jogador cobrir o déficit.
+Quando o saldo é negativo, o painel **🐷 Cofrinhos** libera automaticamente o campo de saque em todos os quatro cofrinhos, permitindo ao jogador cobrir o déficit. O jogador também pode solicitar um empréstimo ao operador.
 
 As cobranças de manutenção de bens e juros de empréstimos são **limitadas ao saldo disponível** (não geram saldo negativo por si sós).
+
+### 13.1 IR sobre Saque Emergencial
+
+Quando o saldo do jogador está **negativo** e ele saca de qualquer cofrinho (exceto o cofrinho de Doações), o sistema aplica **Imposto de Renda** sobre o valor sacado:
+
+```
+valor_bruto_sacado  = valor retirado do cofrinho
+IR                  = valor_bruto_sacado × alíquota_IR%
+valor_líquido       = valor_bruto_sacado − IR
+saldo += valor_líquido   (o IR não retorna ao jogador)
+```
+
+> **Conceito pedagógico:** saques emergenciais em investimentos de longo prazo sofrem tributação na vida real (Imposto de Renda Retido na Fonte). O cofrinho de Doações é isento porque já possui natureza de abatimento fiscal.
+
+### 13.2 Multa por Saldo Negativo ao Passar o Turno
+
+Se o saldo do jogador ainda estiver **negativo no momento em que o turno passa ao próximo jogador** (após manutenção, juros, renda e dividendos), o sistema aplica automaticamente uma multa:
+
+```
+multa = |saldo_negativo| × 20%
+saldo -= multa
+```
+
+A multa é registrada no extrato como **⚠️ Multa por saldo negativo ao passar turno**.
+
+> **Conceito pedagógico:** permanecer endividado (saldo negativo) tem custo crescente. A multa incentiva o jogador a usar os cofrinhos ou solicitar empréstimo antes de encerrar o turno.
 
 ---
 

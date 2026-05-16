@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Como Jogar — Economia dos Milionários</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Cinzel:wght@700;900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      color: #fff8e3;
+      background:
+        radial-gradient(ellipse at 50% 0%, #14181f 0%, #08090d 60%, #050608 100%);
+    }
+
+    /* ── Header ─────────────────────────────────────── */
+    .tut-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(5,6,8,0.85);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(255,209,92,0.18);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .tut-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: transparent;
+      border: 1px solid rgba(255,209,92,0.35);
+      color: #FFE9A0;
+      border-radius: 8px;
+      padding: 6px 14px;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-decoration: none;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .tut-back:hover { background: rgba(255,209,92,0.1); border-color: rgba(255,209,92,0.65); color: #FFE9A0; }
+    .tut-header-titulo {
+      font-family: 'Anton', sans-serif;
+      font-size: 1rem;
+      color: #FFE9A0;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    /* ── Wrapper ─────────────────────────────────────── */
+    .tut-wrapper {
+      max-width: 660px;
+      margin: 0 auto;
+      padding: 28px 16px 48px;
+    }
+
+    /* ── Progress ─────────────────────────────────────── */
+    .tut-progress-track {
+      background: rgba(255,255,255,0.07);
+      border-radius: 99px;
+      height: 5px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .tut-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #C7891A, #FFE9A0);
+      border-radius: 99px;
+      transition: width 0.35s ease;
+    }
+    .tut-progress-label {
+      text-align: right;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: rgba(255,209,92,0.5);
+      letter-spacing: 0.1em;
+      margin-bottom: 22px;
+    }
+
+    /* ── Slide card ─────────────────────────────────────── */
+    .tut-card {
+      background: linear-gradient(160deg, rgba(255,235,170,0.07) 0%, rgba(255,235,170,0.02) 100%);
+      border: 1px solid rgba(255,209,92,0.28);
+      border-radius: 22px;
+      padding: 38px 34px 30px;
+      min-height: 360px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      box-shadow:
+        0 0 50px rgba(0,0,0,0.7),
+        inset 0 1px 0 rgba(255,235,170,0.09);
+      position: relative;
+      overflow: hidden;
+      will-change: opacity, transform;
+      transition: opacity 0.18s ease, transform 0.18s ease;
+    }
+    .tut-card::before {
+      content: '';
+      position: absolute; inset: 0; pointer-events: none;
+      background:
+        repeating-linear-gradient(0deg,  rgba(255,209,92,0.018) 0 1px, transparent 1px 28px),
+        repeating-linear-gradient(90deg, rgba(255,209,92,0.018) 0 1px, transparent 1px 28px);
+    }
+
+    .slide-emoji {
+      font-size: 3.8rem;
+      line-height: 1;
+      margin-bottom: 14px;
+      filter: drop-shadow(0 4px 10px rgba(0,0,0,0.55));
+      position: relative; z-index: 1;
+    }
+    .slide-titulo {
+      font-family: 'Anton', sans-serif;
+      font-size: 1.55rem;
+      color: #FFE9A0;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 22px;
+      line-height: 1.1;
+      text-shadow: 0 0 22px rgba(255,209,92,0.25);
+      position: relative; z-index: 1;
+    }
+    .slide-corpo {
+      font-family: 'Inter', sans-serif;
+      font-size: 1.02rem;
+      color: rgba(255,248,227,0.9);
+      line-height: 1.75;
+      text-align: left;
+      width: 100%;
+      position: relative; z-index: 1;
+    }
+    .slide-corpo p { margin: 0 0 10px; }
+    .slide-corpo strong { color: #FFE9A0; }
+
+    .bloco {
+      background: rgba(255,235,170,0.06);
+      border: 1px solid rgba(255,209,92,0.22);
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin: 8px 0;
+      font-size: 0.97rem;
+      line-height: 1.65;
+    }
+    .bloco-verde {
+      background: rgba(39,209,124,0.08);
+      border-color: rgba(39,209,124,0.28);
+      color: #c8ffea;
+    }
+    .bloco-verde strong { color: #27D17C; }
+
+    /* ── Navigation ─────────────────────────────────────── */
+    .tut-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 22px;
+    }
+    .btn-nav {
+      background: transparent;
+      border: 1px solid rgba(255,209,92,0.35);
+      color: #FFE9A0;
+      font-family: 'Anton', sans-serif;
+      font-size: 0.88rem;
+      letter-spacing: 0.05em;
+      padding: 10px 22px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      min-width: 108px;
+    }
+    .btn-nav:hover:not(:disabled) {
+      background: rgba(255,209,92,0.1);
+      border-color: rgba(255,209,92,0.6);
+    }
+    .btn-nav:disabled { opacity: 0.22; cursor: not-allowed; }
+    .btn-nav-proximo {
+      background: linear-gradient(135deg, #C7891A, #E0A91A);
+      border-color: #FFD15C;
+      color: #3D2603;
+      font-size: 0.9rem;
+    }
+    .btn-nav-proximo:hover:not(:disabled) {
+      background: linear-gradient(135deg, #E0A91A, #FFE9A0);
+      border-color: #FFE9A0;
+    }
+
+    /* ── Dots ─────────────────────────────────────── */
+    .tut-dots {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      justify-content: center;
+      margin-top: 22px;
+    }
+    .dot {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      background: rgba(255,209,92,0.18);
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      transition: background 0.2s, transform 0.2s;
+      flex-shrink: 0;
+    }
+    .dot:hover { background: rgba(255,209,92,0.4); }
+    .dot.ativo {
+      background: #FFD15C;
+      transform: scale(1.5);
+    }
+
+    /* ── Responsivo ─────────────────────────────────────── */
+    @media (max-width: 520px) {
+      .tut-card { padding: 26px 18px 22px; min-height: 0; }
+      .slide-emoji { font-size: 2.9rem; }
+      .slide-titulo { font-size: 1.2rem; }
+      .slide-corpo { font-size: 0.93rem; }
+      .btn-nav { padding: 8px 14px; min-width: 90px; font-size: 0.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="tut-header">
+  <a class="tut-back" href="javascript:history.length > 1 ? history.back() : (location.href='/intro.html')">← Voltar</a>
+  <span class="tut-header-titulo">📖 Como Jogar</span>
+</div>
+
+<!-- Tutorial -->
+<div class="tut-wrapper">
+
+  <div class="tut-progress-track">
+    <div class="tut-progress-fill" id="progressFill"></div>
+  </div>
+  <div class="tut-progress-label" id="progressLabel">Passo 1 de 16</div>
+
+  <div class="tut-card" id="slideCard">
+    <div class="slide-emoji"  id="slideEmoji"></div>
+    <div class="slide-titulo" id="slideTitulo"></div>
+    <div class="slide-corpo"  id="slideCorpo"></div>
+  </div>
+
+  <div class="tut-nav">
+    <button class="btn-nav" id="btnAnterior" onclick="navegar(-1)" disabled>◀ Anterior</button>
+    <button class="btn-nav btn-nav-proximo" id="btnProximo" onclick="navegar(1)">Próximo ▶</button>
+  </div>
+
+  <div class="tut-dots" id="tutDots"></div>
+
+</div>
+
+<script>
+/* ── Conteúdo dos slides ──────────────────────────────────── */
+const SLIDES = [
+  {
+    emoji: '🎲',
+    titulo: 'Bem-vindo ao Jogo!',
+    corpo: `
+      <p>Nesse jogo você aprende sobre <strong>dinheiro e economia</strong> de um jeito divertido!</p>
+      <p>Você vai ganhar salário, guardar dinheiro em cofrinhos, comprar bens e competir com os amigos.</p>
+      <div class="bloco bloco-verde">
+        💡 <strong>Objetivo:</strong> quem terminar com o maior <strong>patrimônio no final vence!</strong>
+        Dinheiro em caixa, cofrinhos, bens e ações — tudo conta!
+      </div>
+    `
+  },
+  {
+    emoji: '🗺️',
+    titulo: 'O Tabuleiro',
+    corpo: `
+      <p>O tabuleiro tem <strong>64 casas</strong>. Todo mundo começa na casa <strong>INÍCIO</strong>.</p>
+      <div class="bloco">
+        ▶ Pode ir para <strong>frente</strong> (avançar) — ou para <strong>trás</strong> (voltar).<br>
+        Você escolhe a direção depois de responder a pergunta!
+      </div>
+      <p>Cada casa tem um efeito diferente. Algumas te dão dinheiro 💰, outras cobram 😬.<br>
+      Quanto mais você conhece o tabuleiro, melhor suas decisões!</p>
+    `
+  },
+  {
+    emoji: '🎯',
+    titulo: 'Rolar o Dado e Responder',
+    corpo: `
+      <p>Na sua vez, o <strong>operador (professor)</strong> clica no dado 🎲 e aparece um número.</p>
+      <p>Logo depois, aparece uma <strong>pergunta sobre economia!</strong></p>
+      <div class="bloco">
+        ✅ <strong>Acertou a resposta?</strong> Ótimo! Você ganha dinheiro bônus ao avançar.<br><br>
+        ❌ <strong>Errou?</strong> Não tem problema — você ainda pode andar, mas sem o bônus de dinheiro.
+      </div>
+      <div class="bloco bloco-verde">
+        💡 Estudar as perguntas antes de jogar faz toda a diferença!
+      </div>
+    `
+  },
+  {
+    emoji: '↔️',
+    titulo: 'Avançar, Voltar ou Só $?',
+    corpo: `
+      <p>Depois da pergunta, o operador escolhe o que fazer com o número do dado:</p>
+      <div class="bloco">
+        ▶ <strong>Avançar</strong> — anda X casas para frente.<br>
+        Se acertou a pergunta, recebe <strong>salário × dado!</strong>
+      </div>
+      <div class="bloco">
+        ◀ <strong>Voltar</strong> — anda X casas para trás (sem dinheiro).
+      </div>
+      <div class="bloco">
+        💰 <strong>Só $</strong> — fica parado mas recebe o salário sem se mover<br>
+        (só aparece se acertou!).
+      </div>
+    `
+  },
+  {
+    emoji: '💰',
+    titulo: 'O Salário que Cresce',
+    corpo: `
+      <p>Todo jogador tem um <strong>salário</strong> que <strong>aumenta a cada rodada!</strong></p>
+      <p>Na rodada 1 é pequeno, mas na rodada 10 já é bem maior. Quanto mais o jogo avança, mais você pode ganhar.</p>
+      <div class="bloco">
+        📐 <strong>Fórmula:</strong> Salário = base + (rodada × incremento)<br>
+        <em>Exemplo: rodada 5, base 4, incremento 2 → 4 + 5×2 = <strong>R$ 14!</strong></em>
+      </div>
+      <div class="bloco bloco-verde">
+        🏆 Dado grande + acertar a pergunta = <strong>muito dinheiro!</strong>
+      </div>
+    `
+  },
+  {
+    emoji: '⭐',
+    titulo: 'Casa ESTRELA',
+    corpo: `
+      <p>A casa <strong>ESTRELA</strong> é uma das mais valiosas do tabuleiro!</p>
+      <div class="bloco">
+        ⭐ Se você parou na ESTRELA e <strong>acertou a pergunta</strong>, recebe:<br><br>
+        <strong style="font-size:1.15em">dado × salário × 3</strong> — o <strong>triplo!</strong> 🤑
+      </div>
+      <p>Se errou, não recebe o bônus extra — mas continua jogando normalmente.</p>
+      <div class="bloco bloco-verde">
+        💡 Quem estuda mais, ganha mais na ESTRELA. Conhecimento é dinheiro!
+      </div>
+    `
+  },
+  {
+    emoji: '💪',
+    titulo: 'N.QUEBRE — Seja Inquebrável!',
+    corpo: `
+      <p>Essa casa é uma <strong>penalização por falta de planejamento</strong> — e tem regras obrigatórias!</p>
+      <div class="bloco">
+        💪 Ao parar no <strong>N.QUEBRE</strong>:<br><br>
+        1️⃣ Um painel aparece pedindo que você <strong>escolha UM cofrinho</strong><br>
+        2️⃣ O jogo deposita <strong>70% do seu saldo</strong> automaticamente nele<br>
+        3️⃣ Você <strong>não pode distribuir</strong> entre vários — é tudo num só!
+      </div>
+      <p>O botão PRÓXIMO fica bloqueado até você escolher o cofrinho.</p>
+      <div class="bloco bloco-verde">
+        🔑 Lição mais importante do jogo:<br>
+        <strong>Poupe de forma intencional e consistente!</strong><br>
+        Quem distribui sem planejamento não fica inquebrável.
+      </div>
+    `
+  },
+  {
+    emoji: '🚨',
+    titulo: 'Casas EMERG e SONHOS',
+    corpo: `
+      <p>Essas casas permitem <strong>sacar dinheiro dos seus cofrinhos</strong> quando precisar:</p>
+      <div class="bloco">
+        🚨 <strong>EMERG</strong> — você pode sacar do Cofrinho de <strong>Emergências.</strong>
+      </div>
+      <div class="bloco">
+        💭 <strong>SONHOS</strong> — você pode sacar do Cofrinho de <strong>Sonhos.</strong>
+      </div>
+      <div class="bloco bloco-verde">
+        ⚠️ Se o seu saldo ficar <strong>negativo</strong>, você pode sacar de <strong>qualquer</strong> cofrinho.<br>
+        Mas atenção: saques em saldo negativo pagam <strong>Imposto de Renda</strong> sobre o valor sacado
+        (exceto o Cofrinho de Doações).<br><br>
+        💡 Se o turno passar com saldo negativo, você leva uma <strong>multa de 20%</strong>!
+        Use os cofrinhos ou peça empréstimo antes de encerrar o turno.
+      </div>
+    `
+  },
+  {
+    emoji: '🛒',
+    titulo: 'Casas $ — Pagamento Obrigatório',
+    corpo: `
+      <p>Ao parar nessas casas, você <strong>paga automaticamente</strong> o valor do bem:</p>
+      <div class="bloco">
+        📱 <strong>$ CEL</strong> → paga R$ 10 <em>(e ainda ganha um bônus extra!)</em><br>
+        🏍️ <strong>$ MOTO</strong> → paga R$ 20<br>
+        🚗 <strong>$ CAR</strong> → paga R$ 50<br>
+        🏠 <strong>$ CASA</strong> → paga R$ 100
+      </div>
+      <div class="bloco bloco-verde">
+        💡 O pagamento te dá <strong>posse do bem</strong> e ele começa a trabalhar para você!<br>
+        Se ficar no negativo, use os cofrinhos para cobrir.
+      </div>
+    `
+  },
+  {
+    emoji: '🐷',
+    titulo: 'Os 4 Cofrinhos',
+    corpo: `
+      <p>Cada jogador tem <strong>4 cofrinhos</strong> que rendem <strong>10% por rodada:</strong></p>
+      <div class="bloco">
+        🚨 <strong>Emergências</strong> — para imprevistos da vida<br>
+        💭 <strong>Sonhos</strong> — para realizar seus objetivos<br>
+        👴 <strong>Aposentadoria</strong> — para o futuro (conta no ranking!)<br>
+        ❤️ <strong>Doações</strong> — abate do imposto no ranking final!
+      </div>
+      <div class="bloco bloco-verde">
+        ⭐ <strong>Superdica:</strong> A PRIMEIRA vez que você deposita em qualquer cofrinho,
+        o valor <strong>DOBRA</strong> automaticamente! Não perca essa chance — comece logo!
+      </div>
+    `
+  },
+  {
+    emoji: '🏠',
+    titulo: 'Comprando Bens',
+    corpo: `
+      <p>Cada bem comprado tem uma <strong>vantagem especial</strong> que dura o jogo todo:</p>
+      <div class="bloco">
+        📱 <strong>Celular</strong> → gera <strong>+R$ 3 por turno</strong> de renda passiva<br>
+        🏍️ <strong>Moto</strong> → reduz <strong>25% da manutenção</strong> de todos os bens<br>
+        🚗 <strong>Carro</strong> → <strong>30% de desconto</strong> no aluguel que você paga<br>
+        🏠 <strong>Casa</strong> → gera <strong>+R$ 10 por turno</strong> de renda passiva
+      </div>
+      <div class="bloco bloco-verde">
+        ⚠️ Cada bem também cobra <strong>manutenção</strong> no fim do turno.<br>
+        Você pode revender qualquer bem por <strong>50% do valor pago.</strong>
+      </div>
+    `
+  },
+  {
+    emoji: '📈',
+    titulo: 'Ações da Bolsa',
+    corpo: `
+      <p>Quando cair na casa <strong>BOLSA</strong>, você lida com investimentos!</p>
+      <div class="bloco">
+        🟢 <strong>VERDE</strong> — deve comprar pelo menos uma ação antes de avançar<br>
+        🔴 <strong>VERMELHO</strong> — deve vender uma ação (se tiver)<br>
+        ⚪ <strong>BRANCO</strong> — escolha livre: compra, venda ou nada!
+      </div>
+      <p>Ações pagam <strong>dividendos</strong> (% do valor) no fim de cada turno — renda passiva!</p>
+      <div class="bloco bloco-verde">
+        ⚡ Ação de <strong>Energia</strong> dobra o número do seu dado a cada rolagem!<br>
+        🛡️ Ação de <strong>Seguradora</strong> cancela o prejuízo em certas casas de penalidade!
+      </div>
+    `
+  },
+  {
+    emoji: '🏘️',
+    titulo: 'Donos de Casas e Aluguel',
+    corpo: `
+      <p>As casas de bônus (número positivo) podem ter <strong>donos!</strong></p>
+      <div class="bloco">
+        🏠 Casa <strong>sem dono</strong> → você recebe o bônus e <strong>vira o dono!</strong><br><br>
+        🏠 Casa do <strong>próprio jogador</strong> → nada acontece — ela é sua!<br><br>
+        🏠 Casa de <strong>outro jogador</strong> → você paga aluguel para ele.
+      </div>
+      <div class="bloco bloco-verde">
+        🚗 Ter um <strong>Carro</strong> te dá <strong>30% de desconto</strong> no aluguel que você paga!<br>
+        Com 2 Carros, o desconto é de <strong>50%!</strong>
+      </div>
+    `
+  },
+  {
+    emoji: '✅',
+    titulo: 'Fim do Turno',
+    corpo: `
+      <p>Quando o operador clica em <strong>✅ PRÓXIMO</strong>, acontece tudo isso, nessa ordem:</p>
+      <div class="bloco">
+        1️⃣ Cobra <strong>manutenção</strong> dos seus bens<br>
+        2️⃣ Cobra <strong>juros</strong> se você tiver dívida<br>
+        3️⃣ Recebe <strong>renda passiva</strong> (Celular e Casa)<br>
+        4️⃣ Recebe <strong>dividendos</strong> das ações<br>
+        5️⃣ Passa a vez para o próximo jogador!
+      </div>
+      <div class="bloco bloco-verde">
+        💡 Quanto mais bens e ações você tiver, mais o <strong>fim do turno trabalha para você!</strong>
+      </div>
+    `
+  },
+  {
+    emoji: '🏆',
+    titulo: 'Quem Ganha? O Ranking',
+    corpo: `
+      <p>Vence quem tiver a maior <strong>Riqueza Líquida</strong> no final:</p>
+      <div class="bloco">
+        ➕ Cofrinhos (1+2+3) + Dinheiro em caixa<br>
+        ➕ Valor dos bens + Valor das ações<br>
+        ➕ Casas do tabuleiro que você possui<br>
+        ➖ Dívidas ➖ <strong>Imposto de Renda (30%)</strong>
+      </div>
+      <div class="bloco bloco-verde">
+        ❤️ O Cofrinho de <strong>Doações abate do imposto</strong> — quem doa, paga menos IR!<br><br>
+        💡 Estratégia vencedora: poupe nos cofrinhos, compre bens que rendem,
+        acerte as perguntas, e doe um pouco para pagar menos imposto!
+      </div>
+    `
+  },
+  {
+    emoji: '🚀',
+    titulo: 'Você está pronto!',
+    corpo: `
+      <p>Parabéns! Agora você conhece as regras do <strong>Economia dos Milionários!</strong></p>
+      <div class="bloco">
+        ✅ <strong>Guarde dinheiro</strong> nos cofrinhos — especialmente no N.QUEBRE!<br>
+        ✅ <strong>Compre bens</strong> que geram renda passiva<br>
+        ✅ <strong>Acerte as perguntas</strong> — conhecimento vale dinheiro!<br>
+        ✅ <strong>Invista em ações</strong> para renda no fim do turno<br>
+        ✅ <strong>Nunca desista</strong> — o jogo pode virar a qualquer momento!
+      </div>
+      <div class="bloco bloco-verde" style="text-align:center; font-size:1.08rem">
+        💰 Boa sorte e bons investimentos! 💰
+      </div>
+    `
+  },
+];
+
+/* ── Estado ─────────────────────────────────────────── */
+let slide = 0;
+const total = SLIDES.length;
+
+/* ── Renderização ───────────────────────────────────── */
+function atualizarConteudo() {
+  const s = SLIDES[slide];
+  document.getElementById('slideEmoji').textContent  = s.emoji;
+  document.getElementById('slideTitulo').textContent = s.titulo;
+  document.getElementById('slideCorpo').innerHTML    = s.corpo;
+
+  const pct = ((slide + 1) / total) * 100;
+  document.getElementById('progressFill').style.width  = pct + '%';
+  document.getElementById('progressLabel').textContent = `Passo ${slide + 1} de ${total}`;
+
+  document.getElementById('btnAnterior').disabled = slide === 0;
+
+  const btnP = document.getElementById('btnProximo');
+  if (slide === total - 1) {
+    btnP.textContent = '✅ Jogar!';
+    btnP.onclick     = () => history.length > 1 ? history.back() : (location.href = '/intro.html');
+  } else {
+    btnP.textContent = 'Próximo ▶';
+    btnP.onclick     = () => navegar(1);
+  }
+
+  document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('ativo', i === slide));
+}
+
+function navegar(dir) {
+  const destino = slide + dir;
+  if (destino < 0 || destino >= total) return;
+
+  const card = document.getElementById('slideCard');
+  card.style.transition = 'opacity 0.15s ease, transform 0.15s ease';
+  card.style.opacity    = '0';
+  card.style.transform  = dir > 0 ? 'translateX(-24px)' : 'translateX(24px)';
+
+  setTimeout(() => {
+    slide = destino;
+    atualizarConteudo();
+    card.style.transition = 'none';
+    card.style.transform  = dir > 0 ? 'translateX(24px)' : 'translateX(-24px)';
+    card.style.opacity    = '0';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      card.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+      card.style.opacity    = '1';
+      card.style.transform  = 'translateX(0)';
+    }));
+  }, 170);
+}
+
+/* ── Dots ──────────────────────────────────────────── */
+const dotsEl = document.getElementById('tutDots');
+SLIDES.forEach((s, i) => {
+  const d     = document.createElement('button');
+  d.className = 'dot';
+  d.title     = s.titulo;
+  d.onclick   = () => navegar(i - slide);
+  dotsEl.appendChild(d);
+});
+
+/* ── Teclado ──────────────────────────────────────── */
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') navegar(1);
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   navegar(-1);
+});
+
+/* ── Init ─────────────────────────────────────────── */
+atualizarConteudo();
+</script>
+
+</body>
+</html>
