@@ -5,6 +5,11 @@ const MAX_COFRINHOS = 4;
 const MAX_ACOES     = 5;
 const MAX_BENS      = 4;
 
+const DEFAULT_VOLUMES = {
+  moeda: 100, bom: 100, ruim: 100, info: 100,
+  pergunta: 100, fim: 100, voltar: 100, passo: 60, dado: 100,
+};
+
 const state = {
   gameId:          null,
   userId:          null,
@@ -25,6 +30,7 @@ const state = {
   tipoDado:        0,
   emiteSom:        1,
   proximaPergunta: 1,
+  volumeSons:      { ...DEFAULT_VOLUMES },
 
   // Bens: 0=Celular, 1=Moto, 2=Carro, 3=Casa
   valorBem:   [10, 20, 50, 100],
@@ -215,6 +221,7 @@ function toTabuleiroPayload() {
     proximaPergunta: state.proximaPergunta,
     tipoDado:        state.tipoDado,
     emiteSom:        state.emiteSom,
+    volumeSons:      JSON.stringify(state.volumeSons),
     casasDonos:      JSON.stringify(state.casasDonos),
     bancoUso:        JSON.stringify(state.jogadoresBancoUso),
     bensLucro:         JSON.stringify(state.jogadoresBensLucro),
@@ -347,6 +354,9 @@ function fromLoadResponse(data) {
   try {
     state.jogadoresDividendosPorAcao = JSON.parse(t.ao_dividendos_acoes || 'null') || null;
   } catch { state.jogadoresDividendosPorAcao = null; }
+  try {
+    state.volumeSons = JSON.parse(t.ao_volumes_sons || 'null') || { ...DEFAULT_VOLUMES };
+  } catch { state.volumeSons = { ...DEFAULT_VOLUMES }; }
 
   initState();
 
@@ -400,7 +410,7 @@ function fromLoadResponse(data) {
 }
 
 export {
-  state, initState,
+  state, initState, DEFAULT_VOLUMES,
   salarioDaRodada, calcCofrinho, calcNetWorth, calcRanking, calcValorMercadoBem,
   toSavePayload, fromLoadResponse,
 };

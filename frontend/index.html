@@ -96,6 +96,9 @@
       <!-- Pergunta -->
       <button class="btn btn-sm btn-info" onclick="fazerPergunta()">❓</button>
 
+      <!-- Cofrinhos -->
+      <button class="btn btn-sm btn-outline-warning" onclick="mostrarPainel('divCofrinhos')" title="Cofrinhos">🏦</button>
+
       <!-- Jogador ativo (vez de quem é) -->
       <div class="d-flex align-items-center gap-1 px-2 py-1 rounded" style="background:rgba(255,255,255,0.1);">
         <span class="small text-muted">Vez:</span>
@@ -243,6 +246,85 @@
         <div class="form-check form-switch">
           <input class="form-check-input" type="checkbox" id="varEnsinaAcoes">
           <label class="form-check-label small" for="varEnsinaAcoes">BOLSA de Valores</label>
+        </div>
+      </div>
+
+      <!-- Volumes de som -->
+      <div class="col-12 mt-2"><hr class="border-secondary my-1"><p class="text-muted small mb-0">🔊 Volume por tipo de som (0 – 100%)</p></div>
+      <div class="col-12">
+        <div class="row g-2">
+          <div class="col-6 col-sm-4 col-md-3 col-lg-2" title="Transações financeiras">
+            <label class="form-label small mb-0">💰 Moeda</label>
+            <div class="d-flex align-items-center gap-1">
+              <input type="range" id="varVol_moeda" class="form-range flex-grow-1" min="0" max="100"
+                     oninput="document.getElementById('varVolLbl_moeda').textContent=this.value+'%'">
+              <span id="varVolLbl_moeda" class="text-muted small" style="min-width:36px;text-align:right;">100%</span>
+            </div>
+          </div>
+          <div class="col-6 col-sm-4 col-md-3 col-lg-2" title="Acerto / resultado positivo">
+            <label class="form-label small mb-0">✅ Bom</label>
+            <div class="d-flex align-items-center gap-1">
+              <input type="range" id="varVol_bom" class="form-range flex-grow-1" min="0" max="100"
+                     oninput="document.getElementById('varVolLbl_bom').textContent=this.value+'%'">
+              <span id="varVolLbl_bom" class="text-muted small" style="min-width:36px;text-align:right;">100%</span>
+            </div>
+          </div>
+          <div class="col-6 col-sm-4 col-md-3 col-lg-2" title="Erro / resultado negativo">
+            <label class="form-label small mb-0">❌ Ruim</label>
+            <div class="d-flex align-items-center gap-1">
+              <input type="range" id="varVol_ruim" class="form-range flex-grow-1" min="0" max="100"
+                     oninput="document.getElementById('varVolLbl_ruim').textContent=this.value+'%'">
+              <span id="varVolLbl_ruim" class="text-muted small" style="min-width:36px;text-align:right;">100%</span>
+            </div>
+          </div>
+          <div class="col-6 col-sm-4 col-md-3 col-lg-2" title="Mensagens informativas">
+            <label class="form-label small mb-0">ℹ️ Info</label>
+            <div class="d-flex align-items-center gap-1">
+              <input type="range" id="varVol_info" class="form-range flex-grow-1" min="0" max="100"
+                     oninput="document.getElementById('varVolLbl_info').textContent=this.value+'%'">
+              <span id="varVolLbl_info" class="text-muted small" style="min-width:36px;text-align:right;">100%</span>
+            </div>
+          </div>
+          <div class="col-6 col-sm-4 col-md-3 col-lg-2" title="Exibição de pergunta">
+            <label class="form-label small mb-0">❓ Pergunta</label>
+            <div class="d-flex align-items-center gap-1">
+              <input type="range" id="varVol_pergunta" class="form-range flex-grow-1" min="0" max="100"
+                     oninput="document.getElementById('varVolLbl_pergunta').textContent=this.value+'%'">
+              <span id="varVolLbl_pergunta" class="text-muted small" style="min-width:36px;text-align:right;">100%</span>
+            </div>
+          </div>
+          <div class="col-6 col-sm-4 col-md-3 col-lg-2" title="Fim de partida / turno">
+            <label class="form-label small mb-0">🏁 Fim</label>
+            <div class="d-flex align-items-center gap-1">
+              <input type="range" id="varVol_fim" class="form-range flex-grow-1" min="0" max="100"
+                     oninput="document.getElementById('varVolLbl_fim').textContent=this.value+'%'">
+              <span id="varVolLbl_fim" class="text-muted small" style="min-width:36px;text-align:right;">100%</span>
+            </div>
+          </div>
+          <div class="col-6 col-sm-4 col-md-3 col-lg-2" title="Botão Voltar">
+            <label class="form-label small mb-0">◀ Voltar</label>
+            <div class="d-flex align-items-center gap-1">
+              <input type="range" id="varVol_voltar" class="form-range flex-grow-1" min="0" max="100"
+                     oninput="document.getElementById('varVolLbl_voltar').textContent=this.value+'%'">
+              <span id="varVolLbl_voltar" class="text-muted small" style="min-width:36px;text-align:right;">100%</span>
+            </div>
+          </div>
+          <div class="col-6 col-sm-4 col-md-3 col-lg-2" title="Passo do pião por casa">
+            <label class="form-label small mb-0">🚶 Passo</label>
+            <div class="d-flex align-items-center gap-1">
+              <input type="range" id="varVol_passo" class="form-range flex-grow-1" min="0" max="100"
+                     oninput="document.getElementById('varVolLbl_passo').textContent=this.value+'%'">
+              <span id="varVolLbl_passo" class="text-muted small" style="min-width:36px;text-align:right;">60%</span>
+            </div>
+          </div>
+          <div class="col-6 col-sm-4 col-md-3 col-lg-2" title="Rolagem do dado">
+            <label class="form-label small mb-0">🎲 Dado</label>
+            <div class="d-flex align-items-center gap-1">
+              <input type="range" id="varVol_dado" class="form-range flex-grow-1" min="0" max="100"
+                     oninput="document.getElementById('varVolLbl_dado').textContent=this.value+'%'">
+              <span id="varVolLbl_dado" class="text-muted small" style="min-width:36px;text-align:right;">100%</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -985,6 +1067,7 @@ window.animarERolarDado = function() {
   if (window._tipoDado && window._tipoDado() === 1) { window._mostrarDesafio(); return; }
 
   btnEl.classList.add('rolando');
+  if (window.tocarSom) window.tocarSom('dado');
   const resultado = Math.floor(Math.random() * 6) + 1;
 
   const dado = document.getElementById('dado-animado');

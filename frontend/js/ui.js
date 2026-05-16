@@ -1,6 +1,6 @@
 // ui.js — atualização de painéis, modais, indicadores
 
-import { state, calcNetWorth, calcRanking, calcCofrinho, salarioDaRodada, calcValorMercadoBem } from './state.js';
+import { state, DEFAULT_VOLUMES, calcNetWorth, calcRanking, calcCofrinho, salarioDaRodada, calcValorMercadoBem } from './state.js';
 import { getNomeCasa, COR_JOGADOR } from './board.js';
 
 const _PERSONAGENS = ['🧙','🦸','🤖','👽','🧛','🧝','🐱','🐵','🦊','🐸','👻','💀'];
@@ -16,18 +16,41 @@ const _ICONS = [
 ];
 
 const SONS = {
-  moeda:    'audio/button-8.mp3',
-  bom:      'audio/button-5.mp3',
-  ruim:     'audio/button-2.mp3',
-  info:     'audio/button-4.mp3',
-  pergunta: 'audio/Rome.mp3',
-  fim:      'audio/button-8.mp3',
+  moeda:    'audio/rizz-sound-effect.mp3',
+  bom:      'audio/kids-saying-yay-sound-effect_3.mp3',
+  ruim:     'audio/you-are-an-idiot.mp3',
+  info:     'audio/error_CDOxCYm.mp3',
+  pergunta: 'audio/rizz-sound-effect.mp3',
+  fim:      'audio/missao-impossivel1.mp3',
+  voltar:   'audio/what-a-good-boy.mp3',
+  passo:    [
+    'audio/perfect-fart.mp3',
+    'audio/26f8b9_sonic_ring_sound_effect.mp3',
+    'audio/ding-sound-effect_1.mp3',
+    'audio/confetti-pop-sound.mp3',
+  ],
+  dado:     'audio/shake-and-roll-dice-soundbible.mp3',
 };
+
+let _somPassoAtual = SONS.passo[0];
+
+export function sortearSomPasso() {
+  const lista = SONS.passo;
+  _somPassoAtual = lista[Math.floor(Math.random() * lista.length)];
+}
 
 export function tocarSom(tipo) {
   if (!state.emiteSom) return;
+  const vol = ((state.volumeSons?.[tipo] ?? DEFAULT_VOLUMES[tipo] ?? 100) / 100);
+  if (tipo === 'passo') {
+    const a = new Audio(_somPassoAtual);
+    a.volume = vol;
+    a.play().catch(() => {});
+    return;
+  }
   const audio = document.getElementById('audioGame');
   if (!audio) return;
+  audio.volume = vol;
   audio.src = SONS[tipo] || SONS.info;
   audio.play().catch(() => {});
 }
@@ -454,6 +477,12 @@ export function carregarVariaveis() {
   setVal('varProxPergunta',  state.proximaPergunta);
   setCheck('varSom',         state.emiteSom === 1);
   setCheck('varEnsinaAcoes', state.ensinaAcoes === 'S');
+  // Volumes por tipo de som
+  const vs = state.volumeSons || {};
+  Object.keys(DEFAULT_VOLUMES).forEach(tipo => {
+    const el = document.getElementById(`varVol_${tipo}`);
+    if (el) { el.value = vs[tipo] ?? DEFAULT_VOLUMES[tipo]; _syncVolLabel(tipo, el.value); }
+  });
   // Valores de bens
   setVal('varValorCelular',  state.valorBem[0]);
   setVal('varValorMoto',     state.valorBem[1]);
@@ -484,6 +513,12 @@ export function salvarVariaveis() {
   state.proximaPergunta  = getInt('varProxPergunta');
   state.emiteSom         = document.getElementById('varSom')?.checked ? 1 : 0;
   state.ensinaAcoes      = document.getElementById('varEnsinaAcoes')?.checked ? 'S' : 'N';
+  // Volumes por tipo de som
+  if (!state.volumeSons) state.volumeSons = { ...DEFAULT_VOLUMES };
+  Object.keys(DEFAULT_VOLUMES).forEach(tipo => {
+    const el = document.getElementById(`varVol_${tipo}`);
+    if (el) state.volumeSons[tipo] = parseInt(el.value) || 0;
+  });
   // Valores de bens
   state.valorBem[0]  = getFloat('varValorCelular')  || state.valorBem[0];
   state.valorBem[1]  = getFloat('varValorMoto')     || state.valorBem[1];
@@ -505,6 +540,10 @@ function setVal(id, v)   { const el = document.getElementById(id); if (el) el.va
 function setCheck(id, v) { const el = document.getElementById(id); if (el) el.checked = v; }
 function getInt(id)      { return parseInt(document.getElementById(id)?.value) || 0; }
 function getFloat(id)    { return parseFloat(document.getElementById(id)?.value) || 0; }
+export function _syncVolLabel(tipo, valor) {
+  const lbl = document.getElementById(`varVolLbl_${tipo}`);
+  if (lbl) lbl.textContent = `${valor}%`;
+}
 
 // ── Extrato (conta corrente) ──────────────────────────────────────────────────
 

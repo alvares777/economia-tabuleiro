@@ -7,12 +7,13 @@ import { renderTabuleiro, atualizarPosicoes, atualizarDonos, atualizarCentro, ge
 import {
   atualizarIndicadores, mostrarMensagem, mostrarPergunta,
   renderJogadores, renderCofrinhos, renderAcoes, renderBens,
-  carregarVariaveis, salvarVariaveis, renderResumo, renderExtrato, tocarSom, fmt,
+  carregarVariaveis, salvarVariaveis, renderResumo, renderExtrato, tocarSom, sortearSomPasso, fmt,
   navPerguntaOperador, irParaPerguntaOperador, getPerguntaAtualOperador,
 } from './ui.js';
 
 window._navPerguntaOperador    = navPerguntaOperador;
 window._irParaPerguntaOperador = irParaPerguntaOperador;
+window.tocarSom                = tocarSom;
 window._state                  = state;
 window._calcValorMercadoBem    = calcValorMercadoBem;
 window._legendaCasas           = LEGENDA_CASAS;
@@ -343,6 +344,7 @@ function _perguntaComResultado(idx, onAcertou, onErrou) {
   };
   document.getElementById('btnQErrou').onclick = () => {
     restaurar();
+    tocarSom('ruim');
     elModal.addEventListener('hidden.bs.modal', () => onErrou(), { once: true });
     modal.hide();
   };
@@ -457,6 +459,7 @@ function _modalMovimento(v, comDinheiro) {
 
     if (!confirm(msg)) return;
 
+    tocarSom('voltar');
     _movimentoUsado = true;
     window._valorDadoAtual = 0;
     window._syncBotoesMovimento?.();
@@ -545,6 +548,7 @@ window._marcarRespostaDado = function(acertou) {
   if (v <= 0) return;
   const questIdx = getPerguntaAtualOperador();
   _ultimaPerguntaDado = { perguntaId: questIdx, acertou };
+  if (!acertou) tocarSom('ruim');
 
   const elModal = document.getElementById('modalPerguntas');
   const modalInst = bootstrap.Modal.getInstance(elModal);
@@ -562,6 +566,7 @@ function animarMovimento(p, totalCasas, direcao, onFim) {
   const btnDado = document.getElementById('btnDadoRolar');
   if (btnDado) btnDado.disabled = true;
   _animando = true;
+  sortearSomPasso();
 
   const startPos = state.jogadoresPosicao[p];
   const path = [];
@@ -637,6 +642,7 @@ function animarMovimento(p, totalCasas, direcao, onFim) {
     const c = casaCenter(pos);
     v.style.left = c.x + 'px';
     v.style.top  = c.y + 'px';
+    tocarSom('passo');
     step++;
     setTimeout(moverProximo, STEP_MS);
   }
@@ -713,7 +719,7 @@ window.avancarJogador = function(valor) {
     atualizarIndicadores();
     _setEsperandoProximo(true);
     agendarAutoSave();
-    const painel = _pendingBolsa ? 'divAcoes' : 'divCofrinhos';
+    const painel = _pendingBolsa ? 'divAcoes' : 'divTabuleiro';
     _animarCasaPouso(state.jogadoresPosicao[p], () => mostrarPainel(painel));
   });
 };
@@ -729,7 +735,7 @@ window.voltarJogador = function(valor) {
     atualizarIndicadores();
     _setEsperandoProximo(true);
     agendarAutoSave();
-    const painel = _pendingBolsa ? 'divAcoes' : 'divCofrinhos';
+    const painel = _pendingBolsa ? 'divAcoes' : 'divTabuleiro';
     _animarCasaPouso(state.jogadoresPosicao[p], () => mostrarPainel(painel));
   });
 };
@@ -755,6 +761,7 @@ function processarCasa(p, dadoValor = 0) {
 
   // Passo 1: aplicar bônus/penalidade da casa (acumula msg para $ squares)
   let bonusTexto = null;
+  let bonusTipo  = bonus > 0 ? 'ok' : 'erro';
   if (bonus !== 0) {
     const sal = salarioDaRodada();
     const val = Math.abs(bonus) * sal;
@@ -771,6 +778,7 @@ function processarCasa(p, dadoValor = 0) {
       } else if (dono === p) {
         // Próprio dono: sem bônus
         bonusTexto = `🏠 ${nome}<br>Esta casa é sua! Nenhum bônus adicional.`;
+        bonusTipo  = 'info';
       } else {
         // Outro jogador é dono: paga aluguel = dadoValor (desconto p/ quem tem Carro)
         const nomeDono       = state.jogadores[dono] || `Jogador ${dono + 1}`;
@@ -795,6 +803,7 @@ function processarCasa(p, dadoValor = 0) {
           valor: aluguel, saldoAntes: saldoAntesDono,
         });
         bonusTexto = `🏠 ${nome}<br>Propriedade de <strong>${nomeDono}</strong><br>Pagou aluguel: <strong>R$ ${fmt(aluguel)}</strong>${descontoInfo}${_alertaSaldoNeg(p)}`;
+        bonusTipo  = 'erro';
         tocarSom('ruim');
       }
     } else {
@@ -843,7 +852,7 @@ function processarCasa(p, dadoValor = 0) {
 
   } else if (bonusTexto) {
     // Casa só com bônus/penalidade, sem efeito extra
-    mostrarMensagem(bonusTexto, bonus > 0 ? 'ok' : 'erro');
+    mostrarMensagem(bonusTexto, bonusTipo);
 
   } else if (nome === 'ESTRELA') {
     const bônus = salarioDaRodada() * 5;
@@ -1477,6 +1486,7 @@ window.abrirExtrato = function(p) {
 
 window.salvarJogo = async function() {
   try {
+    salvarVariaveis();
     const result = await saveGame(toSavePayload());
     state.gameId = result.gameId;
     localStorage.setItem('economia_last_game', result.gameId);
@@ -1535,12 +1545,19 @@ export function mostrarPainel(id) {
 window.mostrarPainel = mostrarPainel;
 window._tipoDado = () => state.tipoDado;
 
-window.fecharVariaveis = function() {
+window.fecharVariaveis = async function() {
   salvarVariaveis();
   if (state.jogador > state.qtJogadores) state.jogador = 1;
   mostrarPainel('divTabuleiro');
   renderTabuleiro();
   atualizarIndicadores();
+  try {
+    const result = await saveGame(toSavePayload());
+    state.gameId = result.gameId;
+    localStorage.setItem('economia_last_game', result.gameId);
+  } catch (e) {
+    mostrarMensagem(`❌ Erro ao salvar: ${e.message}`, 'erro');
+  }
 };
 
 // ── Pergunta avulsa ───────────────────────────────────────────────────────────

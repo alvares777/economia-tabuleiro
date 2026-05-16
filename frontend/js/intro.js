@@ -7,14 +7,28 @@ const REDIRECT_ON_COMPLETE = true;    // ← em produção: true
 
 const $ = (s) => document.querySelector(s);
 
-const coinSnd   = $('#coinSnd');
-const whooshSnd = $('#whooshSnd');
-if (coinSnd)   coinSnd.volume   = 0.45;
-if (whooshSnd) whooshSnd.volume = 0.35;
+const trilhaSnd = $('#trilhaSnd');
+if (trilhaSnd) trilhaSnd.volume = 0.45;
 
 function play(snd){
   if (!snd) return;
   try{ snd.currentTime = 0; snd.play().catch(()=>{}); }catch(e){}
+}
+
+function fadeOutTrilha(duracaoMs){
+  if (!trilhaSnd) return;
+  const passos = 20;
+  const intervalo = duracaoMs / passos;
+  const decremento = trilhaSnd.volume / passos;
+  const iv = setInterval(() => {
+    if (trilhaSnd.volume > decremento) {
+      trilhaSnd.volume -= decremento;
+    } else {
+      trilhaSnd.volume = 0;
+      trilhaSnd.pause();
+      clearInterval(iv);
+    }
+  }, intervalo);
 }
 
 /* ── ambient dust motes ─────────────────────────────────────────────── */
@@ -138,15 +152,12 @@ function buildTimeline(){
     duration:1.8,
     ease:'power2.in'
   }, 0.3);
-  tl.add(()=>play(whooshSnd), 0.4);
   tl.to('#coin-wrap', {
     filter:'drop-shadow(0 0 80px rgba(255,209,92,0.95))',
     duration:1.6
   }, 0.4);
 
   /* ── ACT 2 — Flash & câmera abre (2.2–3.4s) ──────────────────── */
-  tl.add(()=>play(coinSnd), 2.0);
-
   tl.to('.flash', { opacity:1, duration:0.15 }, 2.1);
   tl.to('#coin-wrap', { scale:1.6, duration:0.25, ease:'power2.out' }, 2.1);
   tl.to('.flash', { opacity:0, duration:0.55, ease:'power2.out' }, 2.3);
@@ -205,7 +216,6 @@ function buildTimeline(){
     5.8
   );
 
-  tl.add(()=>play(whooshSnd), 6.2);
   tl.fromTo('.logo-main span',
     { y:-260, rotateX:-90, opacity:0 },
     { y:0,    rotateX:0,   opacity:1, duration:0.55, stagger:0.045, ease:'back.out(2.4)' },
@@ -213,10 +223,7 @@ function buildTimeline(){
   );
 
   // Slam → flash + shockwave + screen shake
-  tl.add(()=>{
-    play(coinSnd);
-    shockwave();
-  }, 6.95);
+  tl.add(()=> shockwave(), 6.95);
   tl.to('.flash', { opacity:0.7, duration:0.08 }, 6.95);
   tl.to('.flash', { opacity:0,   duration:0.45, ease:'power2.out' }, 7.05);
   tl.fromTo('#intro',
@@ -281,6 +288,7 @@ function startTimer(){
 
 function onIntroEnd(){
   if(REDIRECT_ON_COMPLETE){
+    fadeOutTrilha(1200);
     gsap.to('#intro', { opacity:0, duration:1.2, onComplete(){ window.location.href = DESTINO; }});
   }
 }
@@ -288,6 +296,7 @@ function onIntroEnd(){
 function skip(){
   if(mainTL) mainTL.kill();
   gsap.killTweensOf('*');
+  fadeOutTrilha(600);
   gsap.to('#intro', { opacity:0, duration:0.6, onComplete(){
     window.location.href = DESTINO;
   }});
@@ -320,6 +329,7 @@ function bootIntro(){
 
   mainTL = buildTimeline();
   startTimer();
+  play(trilhaSnd);
 }
 
 $('#skip').addEventListener('click', skip);
