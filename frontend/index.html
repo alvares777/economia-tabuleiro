@@ -125,6 +125,9 @@
 <div class="container-fluid mt-2">
 
   <!-- Tabuleiro -->
+  <!-- Banner modo colocação de bem no campo -->
+  <div id="bemCampoBanner" class="alert alert-warning text-center py-2 mb-2 fw-bold" style="display:none"></div>
+
   <div id="divTabuleiro" class="panel"></div>
 
   <!-- Resumo / Ranking -->
@@ -178,6 +181,7 @@
         <tbody id="tbodyBens"></tbody>
       </table>
     </div>
+    <div id="divBensNoCampo" class="mt-2" style="display:none"></div>
     <div id="divCasasTabuleiro" class="mt-2" style="display:none"></div>
   </div>
 
@@ -249,141 +253,213 @@
         </div>
       </div>
 
-      <!-- Volumes de som -->
-      <div class="col-12 mt-2"><hr class="border-secondary my-1"><p class="text-muted small mb-0">🔊 Volume por tipo de som (0 – 100%)</p></div>
-      <div class="col-12">
-        <div class="row g-2">
-          <div class="col-6 col-sm-4 col-md-3 col-lg-2" title="Transações financeiras">
-            <label class="form-label small mb-0">💰 Moeda</label>
-            <div class="d-flex align-items-center gap-1">
-              <input type="range" id="varVol_moeda" class="form-range flex-grow-1" min="0" max="100"
-                     oninput="document.getElementById('varVolLbl_moeda').textContent=this.value+'%'">
-              <span id="varVolLbl_moeda" class="text-muted small" style="min-width:36px;text-align:right;">100%</span>
+      <!-- ── Quadrante: Sons ── -->
+      <div class="col-12 mt-2">
+        <div class="border border-warning rounded p-2">
+          <p class="text-warning small fw-bold mb-2">🔊 Sons — Volume por tipo (0 – 100%)</p>
+          <div class="row g-2">
+            <div class="col-6 col-sm-4 col-md-3 col-lg-2" title="Transações financeiras">
+              <label class="form-label small mb-0 d-flex align-items-center justify-content-between">
+                <span>💰 Moeda</span>
+                <button type="button" class="btn btn-outline-warning btn-sm py-0 px-1 ms-1" style="font-size:0.65rem;line-height:1.4" title="Testar som"
+                  onclick="(function(){var a=new Audio('audio/rizz-sound-effect.mp3');a.volume=document.getElementById('varVol_moeda').value/100;a.play().catch(function(){});})()">▶</button>
+              </label>
+              <div class="d-flex align-items-center gap-1">
+                <input type="range" id="varVol_moeda" class="form-range flex-grow-1" min="0" max="100"
+                       oninput="document.getElementById('varVolLbl_moeda').textContent=this.value+'%'">
+                <span id="varVolLbl_moeda" class="text-muted small" style="min-width:36px;text-align:right;">100%</span>
+              </div>
             </div>
-          </div>
-          <div class="col-6 col-sm-4 col-md-3 col-lg-2" title="Acerto / resultado positivo">
-            <label class="form-label small mb-0">✅ Bom</label>
-            <div class="d-flex align-items-center gap-1">
-              <input type="range" id="varVol_bom" class="form-range flex-grow-1" min="0" max="100"
-                     oninput="document.getElementById('varVolLbl_bom').textContent=this.value+'%'">
-              <span id="varVolLbl_bom" class="text-muted small" style="min-width:36px;text-align:right;">100%</span>
+            <div class="col-6 col-sm-4 col-md-3 col-lg-2" title="Acerto / resultado positivo">
+              <label class="form-label small mb-0 d-flex align-items-center justify-content-between">
+                <span>✅ Bom</span>
+                <button type="button" class="btn btn-outline-warning btn-sm py-0 px-1 ms-1" style="font-size:0.65rem;line-height:1.4" title="Testar som"
+                  onclick="(function(){var a=new Audio('audio/kids-saying-yay-sound-effect_3.mp3');a.volume=document.getElementById('varVol_bom').value/100;a.play().catch(function(){});})()">▶</button>
+              </label>
+              <div class="d-flex align-items-center gap-1">
+                <input type="range" id="varVol_bom" class="form-range flex-grow-1" min="0" max="100"
+                       oninput="document.getElementById('varVolLbl_bom').textContent=this.value+'%'">
+                <span id="varVolLbl_bom" class="text-muted small" style="min-width:36px;text-align:right;">100%</span>
+              </div>
             </div>
-          </div>
-          <div class="col-6 col-sm-4 col-md-3 col-lg-2" title="Erro / resultado negativo">
-            <label class="form-label small mb-0">❌ Ruim</label>
-            <div class="d-flex align-items-center gap-1">
-              <input type="range" id="varVol_ruim" class="form-range flex-grow-1" min="0" max="100"
-                     oninput="document.getElementById('varVolLbl_ruim').textContent=this.value+'%'">
-              <span id="varVolLbl_ruim" class="text-muted small" style="min-width:36px;text-align:right;">100%</span>
+            <div class="col-6 col-sm-4 col-md-3 col-lg-2" title="Erro / resultado negativo">
+              <label class="form-label small mb-0 d-flex align-items-center justify-content-between">
+                <span>❌ Ruim</span>
+                <button type="button" class="btn btn-outline-warning btn-sm py-0 px-1 ms-1" style="font-size:0.65rem;line-height:1.4" title="Testar som"
+                  onclick="(function(){var a=new Audio('audio/you-are-an-idiot.mp3');a.volume=document.getElementById('varVol_ruim').value/100;a.play().catch(function(){});})()">▶</button>
+              </label>
+              <div class="d-flex align-items-center gap-1">
+                <input type="range" id="varVol_ruim" class="form-range flex-grow-1" min="0" max="100"
+                       oninput="document.getElementById('varVolLbl_ruim').textContent=this.value+'%'">
+                <span id="varVolLbl_ruim" class="text-muted small" style="min-width:36px;text-align:right;">100%</span>
+              </div>
             </div>
-          </div>
-          <div class="col-6 col-sm-4 col-md-3 col-lg-2" title="Mensagens informativas">
-            <label class="form-label small mb-0">ℹ️ Info</label>
-            <div class="d-flex align-items-center gap-1">
-              <input type="range" id="varVol_info" class="form-range flex-grow-1" min="0" max="100"
-                     oninput="document.getElementById('varVolLbl_info').textContent=this.value+'%'">
-              <span id="varVolLbl_info" class="text-muted small" style="min-width:36px;text-align:right;">100%</span>
+            <div class="col-6 col-sm-4 col-md-3 col-lg-2" title="Mensagens informativas">
+              <label class="form-label small mb-0 d-flex align-items-center justify-content-between">
+                <span>ℹ️ Info</span>
+                <button type="button" class="btn btn-outline-warning btn-sm py-0 px-1 ms-1" style="font-size:0.65rem;line-height:1.4" title="Testar som"
+                  onclick="(function(){var a=new Audio('audio/error_CDOxCYm.mp3');a.volume=document.getElementById('varVol_info').value/100;a.play().catch(function(){});})()">▶</button>
+              </label>
+              <div class="d-flex align-items-center gap-1">
+                <input type="range" id="varVol_info" class="form-range flex-grow-1" min="0" max="100"
+                       oninput="document.getElementById('varVolLbl_info').textContent=this.value+'%'">
+                <span id="varVolLbl_info" class="text-muted small" style="min-width:36px;text-align:right;">100%</span>
+              </div>
             </div>
-          </div>
-          <div class="col-6 col-sm-4 col-md-3 col-lg-2" title="Exibição de pergunta">
-            <label class="form-label small mb-0">❓ Pergunta</label>
-            <div class="d-flex align-items-center gap-1">
-              <input type="range" id="varVol_pergunta" class="form-range flex-grow-1" min="0" max="100"
-                     oninput="document.getElementById('varVolLbl_pergunta').textContent=this.value+'%'">
-              <span id="varVolLbl_pergunta" class="text-muted small" style="min-width:36px;text-align:right;">100%</span>
+            <div class="col-6 col-sm-4 col-md-3 col-lg-2" title="Exibição de pergunta">
+              <label class="form-label small mb-0 d-flex align-items-center justify-content-between">
+                <span>❓ Pergunta</span>
+                <button type="button" class="btn btn-outline-warning btn-sm py-0 px-1 ms-1" style="font-size:0.65rem;line-height:1.4" title="Testar som"
+                  onclick="(function(){var a=new Audio('audio/rizz-sound-effect.mp3');a.volume=document.getElementById('varVol_pergunta').value/100;a.play().catch(function(){});})()">▶</button>
+              </label>
+              <div class="d-flex align-items-center gap-1">
+                <input type="range" id="varVol_pergunta" class="form-range flex-grow-1" min="0" max="100"
+                       oninput="document.getElementById('varVolLbl_pergunta').textContent=this.value+'%'">
+                <span id="varVolLbl_pergunta" class="text-muted small" style="min-width:36px;text-align:right;">100%</span>
+              </div>
             </div>
-          </div>
-          <div class="col-6 col-sm-4 col-md-3 col-lg-2" title="Fim de partida / turno">
-            <label class="form-label small mb-0">🏁 Fim</label>
-            <div class="d-flex align-items-center gap-1">
-              <input type="range" id="varVol_fim" class="form-range flex-grow-1" min="0" max="100"
-                     oninput="document.getElementById('varVolLbl_fim').textContent=this.value+'%'">
-              <span id="varVolLbl_fim" class="text-muted small" style="min-width:36px;text-align:right;">100%</span>
+            <div class="col-6 col-sm-4 col-md-3 col-lg-2" title="Fim de partida / turno">
+              <label class="form-label small mb-0 d-flex align-items-center justify-content-between">
+                <span>🏁 Fim</span>
+                <button type="button" class="btn btn-outline-warning btn-sm py-0 px-1 ms-1" style="font-size:0.65rem;line-height:1.4" title="Testar som"
+                  onclick="(function(){var a=new Audio('audio/missao-impossivel1.mp3');a.volume=document.getElementById('varVol_fim').value/100;a.play().catch(function(){});})()">▶</button>
+              </label>
+              <div class="d-flex align-items-center gap-1">
+                <input type="range" id="varVol_fim" class="form-range flex-grow-1" min="0" max="100"
+                       oninput="document.getElementById('varVolLbl_fim').textContent=this.value+'%'">
+                <span id="varVolLbl_fim" class="text-muted small" style="min-width:36px;text-align:right;">100%</span>
+              </div>
             </div>
-          </div>
-          <div class="col-6 col-sm-4 col-md-3 col-lg-2" title="Botão Voltar">
-            <label class="form-label small mb-0">◀ Voltar</label>
-            <div class="d-flex align-items-center gap-1">
-              <input type="range" id="varVol_voltar" class="form-range flex-grow-1" min="0" max="100"
-                     oninput="document.getElementById('varVolLbl_voltar').textContent=this.value+'%'">
-              <span id="varVolLbl_voltar" class="text-muted small" style="min-width:36px;text-align:right;">100%</span>
+            <div class="col-6 col-sm-4 col-md-3 col-lg-2" title="Botão Voltar">
+              <label class="form-label small mb-0 d-flex align-items-center justify-content-between">
+                <span>◀ Voltar</span>
+                <button type="button" class="btn btn-outline-warning btn-sm py-0 px-1 ms-1" style="font-size:0.65rem;line-height:1.4" title="Testar som"
+                  onclick="(function(){var a=new Audio('audio/what-a-good-boy.mp3');a.volume=document.getElementById('varVol_voltar').value/100;a.play().catch(function(){});})()">▶</button>
+              </label>
+              <div class="d-flex align-items-center gap-1">
+                <input type="range" id="varVol_voltar" class="form-range flex-grow-1" min="0" max="100"
+                       oninput="document.getElementById('varVolLbl_voltar').textContent=this.value+'%'">
+                <span id="varVolLbl_voltar" class="text-muted small" style="min-width:36px;text-align:right;">100%</span>
+              </div>
             </div>
-          </div>
-          <div class="col-6 col-sm-4 col-md-3 col-lg-2" title="Passo do pião por casa">
-            <label class="form-label small mb-0">🚶 Passo</label>
-            <div class="d-flex align-items-center gap-1">
-              <input type="range" id="varVol_passo" class="form-range flex-grow-1" min="0" max="100"
-                     oninput="document.getElementById('varVolLbl_passo').textContent=this.value+'%'">
-              <span id="varVolLbl_passo" class="text-muted small" style="min-width:36px;text-align:right;">60%</span>
+            <div class="col-6 col-sm-4 col-md-3 col-lg-2" title="Passo do pião por casa">
+              <label class="form-label small mb-0 d-flex align-items-center justify-content-between">
+                <span>🚶 Passo</span>
+                <button type="button" class="btn btn-outline-warning btn-sm py-0 px-1 ms-1" style="font-size:0.65rem;line-height:1.4" title="Testar som"
+                  onclick="(function(){var a=new Audio('audio/perfect-fart.mp3');a.volume=document.getElementById('varVol_passo').value/100;a.play().catch(function(){});})()">▶</button>
+              </label>
+              <div class="d-flex align-items-center gap-1">
+                <input type="range" id="varVol_passo" class="form-range flex-grow-1" min="0" max="100"
+                       oninput="document.getElementById('varVolLbl_passo').textContent=this.value+'%'">
+                <span id="varVolLbl_passo" class="text-muted small" style="min-width:36px;text-align:right;">60%</span>
+              </div>
             </div>
-          </div>
-          <div class="col-6 col-sm-4 col-md-3 col-lg-2" title="Rolagem do dado">
-            <label class="form-label small mb-0">🎲 Dado</label>
-            <div class="d-flex align-items-center gap-1">
-              <input type="range" id="varVol_dado" class="form-range flex-grow-1" min="0" max="100"
-                     oninput="document.getElementById('varVolLbl_dado').textContent=this.value+'%'">
-              <span id="varVolLbl_dado" class="text-muted small" style="min-width:36px;text-align:right;">100%</span>
+            <div class="col-6 col-sm-4 col-md-3 col-lg-2" title="Rolagem do dado">
+              <label class="form-label small mb-0 d-flex align-items-center justify-content-between">
+                <span>🎲 Dado</span>
+                <button type="button" class="btn btn-outline-warning btn-sm py-0 px-1 ms-1" style="font-size:0.65rem;line-height:1.4" title="Testar som"
+                  onclick="(function(){var a=new Audio('audio/shake-and-roll-dice-soundbible.mp3');a.volume=document.getElementById('varVol_dado').value/100;a.play().catch(function(){});})()">▶</button>
+              </label>
+              <div class="d-flex align-items-center gap-1">
+                <input type="range" id="varVol_dado" class="form-range flex-grow-1" min="0" max="100"
+                       oninput="document.getElementById('varVolLbl_dado').textContent=this.value+'%'">
+                <span id="varVolLbl_dado" class="text-muted small" style="min-width:36px;text-align:right;">100%</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Valores de Bens (casas $) -->
-      <div class="col-12 mt-2"><hr class="border-secondary my-1"><p class="text-muted small mb-0">🛒 Valor dos Bens — usado nas casas $ do tabuleiro</p></div>
-      <div class="col-sm-6 col-md-3">
-        <label class="form-label small">Celular (R$)</label>
-        <input type="number" id="varValorCelular" class="form-control form-control-sm" min="1" step="1">
-      </div>
-      <div class="col-sm-6 col-md-3">
-        <label class="form-label small">Moto (R$)</label>
-        <input type="number" id="varValorMoto" class="form-control form-control-sm" min="1" step="1">
-      </div>
-      <div class="col-sm-6 col-md-3">
-        <label class="form-label small">Carro (R$)</label>
-        <input type="number" id="varValorCarro" class="form-control form-control-sm" min="1" step="1">
-      </div>
-      <div class="col-sm-6 col-md-3">
-        <label class="form-label small">Casa (R$)</label>
-        <input type="number" id="varValorCasa" class="form-control form-control-sm" min="1" step="1">
-      </div>
-      <div class="col-sm-6 col-md-3">
-        <label class="form-label small">Manutenção Celular %</label>
-        <input type="number" id="varDespesaCelular" class="form-control form-control-sm" min="0" step="1">
-      </div>
-      <div class="col-sm-6 col-md-3">
-        <label class="form-label small">Manutenção Moto %</label>
-        <input type="number" id="varDespesaMoto" class="form-control form-control-sm" min="0" step="1">
-      </div>
-      <div class="col-sm-6 col-md-3">
-        <label class="form-label small">Manutenção Carro %</label>
-        <input type="number" id="varDespesaCarro" class="form-control form-control-sm" min="0" step="1">
-      </div>
-      <div class="col-sm-6 col-md-3">
-        <label class="form-label small">Manutenção Casa %</label>
-        <input type="number" id="varDespesaCasa" class="form-control form-control-sm" min="0" step="1">
+      <!-- ── Quadrante: Bens ── -->
+      <div class="col-12 mt-2">
+        <div class="border border-info rounded p-2">
+          <p class="text-info small fw-bold mb-2">🛒 Bens — Valor de compra e manutenção % por rodada</p>
+          <div class="row g-2">
+            <div class="col-sm-6 col-md-3">
+              <label class="form-label small">📱 Celular (R$)</label>
+              <input type="number" id="varValorCelular" class="form-control form-control-sm" min="1" step="1">
+            </div>
+            <div class="col-sm-6 col-md-3">
+              <label class="form-label small">🏍️ Moto (R$)</label>
+              <input type="number" id="varValorMoto" class="form-control form-control-sm" min="1" step="1">
+            </div>
+            <div class="col-sm-6 col-md-3">
+              <label class="form-label small">🚗 Carro (R$)</label>
+              <input type="number" id="varValorCarro" class="form-control form-control-sm" min="1" step="1">
+            </div>
+            <div class="col-sm-6 col-md-3">
+              <label class="form-label small">🏠 Casa (R$)</label>
+              <input type="number" id="varValorCasa" class="form-control form-control-sm" min="1" step="1">
+            </div>
+            <div class="col-sm-6 col-md-3">
+              <label class="form-label small">Manutenção Celular %</label>
+              <input type="number" id="varDespesaCelular" class="form-control form-control-sm" min="0" step="1">
+            </div>
+            <div class="col-sm-6 col-md-3">
+              <label class="form-label small">Manutenção Moto %</label>
+              <input type="number" id="varDespesaMoto" class="form-control form-control-sm" min="0" step="1">
+            </div>
+            <div class="col-sm-6 col-md-3">
+              <label class="form-label small">Manutenção Carro %</label>
+              <input type="number" id="varDespesaCarro" class="form-control form-control-sm" min="0" step="1">
+            </div>
+            <div class="col-sm-6 col-md-3">
+              <label class="form-label small">Manutenção Casa %</label>
+              <input type="number" id="varDespesaCasa" class="form-control form-control-sm" min="0" step="1">
+            </div>
+          </div>
+        </div>
       </div>
 
-      <!-- Valores das Ações -->
-      <div class="col-12 mt-2"><hr class="border-secondary my-1"><p class="text-muted small mb-0">📈 Valor Inicial das Ações — corrigido por 2 × Juros% a cada rodada</p></div>
-      <div class="col-sm-6 col-md-3">
-        <label class="form-label small">Banco (R$)</label>
-        <input type="number" id="varValorBanco" class="form-control form-control-sm" min="1" step="1">
-      </div>
-      <div class="col-sm-6 col-md-3">
-        <label class="form-label small">Energia (R$)</label>
-        <input type="number" id="varValorEnergia" class="form-control form-control-sm" min="1" step="1">
-      </div>
-      <div class="col-sm-6 col-md-3">
-        <label class="form-label small">Seguradora (R$)</label>
-        <input type="number" id="varValorSeguradora" class="form-control form-control-sm" min="1" step="1">
-      </div>
-      <div class="col-sm-6 col-md-3">
-        <label class="form-label small">Saneamento (R$)</label>
-        <input type="number" id="varValorSaneamento" class="form-control form-control-sm" min="1" step="1">
-      </div>
-      <div class="col-sm-6 col-md-3">
-        <label class="form-label small">Telecom (R$)</label>
-        <input type="number" id="varValorTelecom" class="form-control form-control-sm" min="1" step="1">
+      <!-- ── Quadrante: Ações ── -->
+      <div class="col-12 mt-2">
+        <div class="border border-success rounded p-2">
+          <p class="text-success small fw-bold mb-1">📈 Ações — Valor inicial (corrigido 2×Juros%/rodada) e dividendos</p>
+          <p class="text-muted small mb-2" style="font-size:0.75rem">Banco/Energia/Seguradora: div. a partir da 2ª ação | Saneamento/Telecom: div. em todas | volatilidade a cada 5 rodadas</p>
+          <div class="row g-2">
+            <div class="col-sm-6 col-md-2">
+              <label class="form-label small">🏦 Banco (R$)</label>
+              <input type="number" id="varValorBanco" class="form-control form-control-sm" min="1" step="1">
+            </div>
+            <div class="col-sm-6 col-md-2">
+              <label class="form-label small">⚡ Energia (R$)</label>
+              <input type="number" id="varValorEnergia" class="form-control form-control-sm" min="1" step="1">
+            </div>
+            <div class="col-sm-6 col-md-2">
+              <label class="form-label small">🛡️ Seguradora (R$)</label>
+              <input type="number" id="varValorSeguradora" class="form-control form-control-sm" min="1" step="1">
+            </div>
+            <div class="col-sm-6 col-md-2">
+              <label class="form-label small">🚿 Saneamento (R$)</label>
+              <input type="number" id="varValorSaneamento" class="form-control form-control-sm" min="1" step="1">
+            </div>
+            <div class="col-sm-6 col-md-2">
+              <label class="form-label small">📡 Telecom (R$)</label>
+              <input type="number" id="varValorTelecom" class="form-control form-control-sm" min="1" step="1">
+            </div>
+            <div class="col-12 mt-1"><hr class="border-secondary my-1"></div>
+            <div class="col-sm-6 col-md-2">
+              <label class="form-label small">🏦 Banco div%</label>
+              <input type="number" id="varDivBanco" class="form-control form-control-sm" min="0" max="100" step="1">
+            </div>
+            <div class="col-sm-6 col-md-2">
+              <label class="form-label small">⚡ Energia div%</label>
+              <input type="number" id="varDivEnergia" class="form-control form-control-sm" min="0" max="100" step="1">
+            </div>
+            <div class="col-sm-6 col-md-2">
+              <label class="form-label small">🛡️ Segur. div%</label>
+              <input type="number" id="varDivSeguradora" class="form-control form-control-sm" min="0" max="100" step="1">
+            </div>
+            <div class="col-sm-6 col-md-2">
+              <label class="form-label small">🚿 Saneam. div%</label>
+              <input type="number" id="varDivSaneamento" class="form-control form-control-sm" min="0" max="100" step="1">
+            </div>
+            <div class="col-sm-6 col-md-2">
+              <label class="form-label small">📡 Telecom div%</label>
+              <input type="number" id="varDivTelecom" class="form-control form-control-sm" min="0" max="100" step="1">
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="mt-3 d-flex gap-2">
@@ -1010,6 +1086,8 @@ window._rolarDadoEspecial = function() {
   if (btn) btn.disabled = true;
   document.querySelectorAll('.btn-bolsa-manual').forEach(b => b.disabled = true);
 
+  var _dadoEspecialLoop = window.tocarSomLoop ? window.tocarSomLoop('dado') : null;
+
   const cores = ['verde', 'vermelho', 'branco'];
   const cor   = cores[Math.floor(Math.random() * 3)];
 
@@ -1031,7 +1109,10 @@ window._rolarDadoEspecial = function() {
   dado.style.transition = 'transform 2.2s cubic-bezier(0.05, 0.85, 0.35, 1)';
   dado.style.transform  = `rotateX(${tx}deg) rotateY(${ty}deg)`;
 
-  setTimeout(() => window._bolsaDadoResultado(cor), 2350);
+  setTimeout(() => {
+    if (_dadoEspecialLoop) { _dadoEspecialLoop.pause(); _dadoEspecialLoop = null; }
+    window._bolsaDadoResultado(cor);
+  }, 2350);
 };
 
 document.getElementById('modalBolsaDado').addEventListener('show.bs.modal', () => {
@@ -1067,7 +1148,7 @@ window.animarERolarDado = function() {
   if (window._tipoDado && window._tipoDado() === 1) { window._mostrarDesafio(); return; }
 
   btnEl.classList.add('rolando');
-  if (window.tocarSom) window.tocarSom('dado');
+  var _dadoLoop = window.tocarSomLoop ? window.tocarSomLoop('dado') : null;
   const resultado = Math.floor(Math.random() * 6) + 1;
 
   const dado = document.getElementById('dado-animado');
@@ -1108,6 +1189,7 @@ window.animarERolarDado = function() {
     if (elapsed < duracaoMs) {
       requestAnimationFrame(frame);
     } else {
+      if (_dadoLoop) { _dadoLoop.pause(); _dadoLoop = null; }
       dado.textContent = _FACES_DADO[resultado - 1];
       setTimeout(() => {
         dado.style.display = 'none';
@@ -1149,6 +1231,61 @@ function promoverValorMovimento(acao) {
 <!-- DADO ANIMADO -->
 <div id="dado-animado" style="display:none">🎲</div>
 
+<!-- MODAL CONFIRMA VOLTAR -->
+<div class="modal fade" id="modalConfirmaVoltar" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark text-light border-warning">
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title fw-bold">⚠️ Confirmar Voltar</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="modalConfirmaVoltarTexto"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-danger fw-bold" id="btnConfirmaVoltarOk">◀ Confirmar Voltar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIRMA BEM NO CAMPO -->
+<div class="modal fade" id="modalBemCampoConfirm" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-dark text-light border-warning">
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title fw-bold">📍 Colocar Bem no Tabuleiro</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="bemCampoConfirmTexto"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-warning fw-bold" id="bemCampoConfirmBtn">✅ Confirmar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL APOSENTADORIA -->
+<div class="modal fade" id="modalAposentadoria" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-warning bg-dark text-light">
+      <div class="modal-header bg-warning text-dark">
+        <h5 class="modal-title fw-bold">🎉 Aposentado!</h5>
+      </div>
+      <div class="modal-body text-center py-4">
+        <div style="font-size:3rem">🏖️</div>
+        <h4 class="mt-2 fw-bold" id="aposentadoriaNome">—</h4>
+        <p class="text-muted mt-2">chegou à <strong>Casa 64 — Viva de Renda!</strong><br>
+        Este jogador está aposentado e não jogará mais,<br>mas continua no ranking final.</p>
+        <p class="text-warning fw-bold">Posição atual no ranking: <span id="aposentadoriaRank">—</span></p>
+      </div>
+      <div class="modal-footer justify-content-center">
+        <button type="button" class="btn btn-warning fw-bold px-5" data-bs-dismiss="modal">🎊 Continuar o Jogo</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL DE LEILÃO -->
 <div class="modal fade" id="modalLeilao" tabindex="-1" data-bs-backdrop="static">
   <div class="modal-dialog modal-lg">
@@ -1161,6 +1298,20 @@ function promoverValorMovimento(acao) {
 
         <!-- Fase 1: Configuração -->
         <div id="leilaoFase1">
+          <!-- Tipo -->
+          <div class="mb-3 d-flex gap-4">
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="leilaoTipo" id="leilaoTipoBem" value="bem" checked
+                     onchange="window._leilaoTipoChange()">
+              <label class="form-check-label fw-bold" for="leilaoTipoBem">📦 Bem</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="leilaoTipo" id="leilaoTipoCasa" value="casa"
+                     onchange="window._leilaoTipoChange()">
+              <label class="form-check-label fw-bold" for="leilaoTipoCasa">🏠 Casa do Tabuleiro</label>
+            </div>
+          </div>
+
           <div class="row g-3 mb-3">
             <div class="col-md-4">
               <label class="form-label fw-bold">Vendedor</label>
@@ -1168,13 +1319,18 @@ function promoverValorMovimento(acao) {
                 <option value="-1">🏦 Banco (estoque)</option>
               </select>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-4" id="leilaoSecaoBem">
               <label class="form-label fw-bold">Bem</label>
               <select id="leilaoBem" class="form-select" onchange="window._leilaoAtualizarSetup()">
                 <option value="0">📱 Celular</option>
                 <option value="1">🏍️ Moto</option>
                 <option value="2">🚗 Carro</option>
                 <option value="3">🏠 Casa</option>
+              </select>
+            </div>
+            <div class="col-md-4" id="leilaoSecaoCasa" style="display:none">
+              <label class="form-label fw-bold">Casa no Tabuleiro</label>
+              <select id="leilaoCasa" class="form-select" onchange="window._leilaoAtualizarSetupCasa()">
               </select>
             </div>
             <div class="col-md-4">
@@ -1216,9 +1372,8 @@ function promoverValorMovimento(acao) {
 </div>
 
 <script>
-// ── Leilão de Bens ─────────────────────────────────────────────────────────────
+// ── Leilão de Bens / Casas do Tabuleiro ────────────────────────────────────────
 window.abrirModalLeilao = function() {
-  // Preenche vendedores com jogadores presentes
   const sel = document.getElementById('leilaoVendedor');
   if (!sel) return;
   sel.innerHTML = '<option value="-1">🏦 Banco (estoque)</option>';
@@ -1229,7 +1384,10 @@ window.abrirModalLeilao = function() {
     opt.textContent = window._state.jogadores[i] || `Jogador ${i+1}`;
     sel.appendChild(opt);
   }
-  // Reset para fase 1
+  // Reset tipo para 'bem' e fases
+  document.getElementById('leilaoTipoBem').checked = true;
+  document.getElementById('leilaoSecaoBem').style.display  = '';
+  document.getElementById('leilaoSecaoCasa').style.display = 'none';
   document.getElementById('leilaoFase1').style.display = '';
   document.getElementById('leilaoFase2').style.display = 'none';
   document.getElementById('leilaoFase3').style.display = 'none';
@@ -1237,13 +1395,24 @@ window.abrirModalLeilao = function() {
   new bootstrap.Modal(document.getElementById('modalLeilao')).show();
 };
 
+window._leilaoGetTipo = function() {
+  return document.querySelector('input[name="leilaoTipo"]:checked')?.value ?? 'bem';
+};
+
+window._leilaoTipoChange = function() {
+  const tipo = window._leilaoGetTipo();
+  document.getElementById('leilaoSecaoBem').style.display  = tipo === 'bem'  ? '' : 'none';
+  document.getElementById('leilaoSecaoCasa').style.display = tipo === 'casa' ? '' : 'none';
+  window._leilaoAtualizarSetup();
+};
+
 window._leilaoAtualizarSetup = function() {
+  if (window._leilaoGetTipo() === 'casa') { window._leilaoAtualizarSetupCasa(); return; }
   const vendIdx = parseInt(document.getElementById('leilaoVendedor').value);
   const b       = parseInt(document.getElementById('leilaoBem').value);
   const nomes   = ['Celular','Moto','Carro','Casa'];
   const st      = window._state;
   if (!st) return;
-  // Valor de mercado via função global exposta pelo state.js
   const vmkt = window._calcValorMercadoBem ? window._calcValorMercadoBem(b) : st.valorBem[b];
   document.getElementById('leilaoLanceMinimo').value = vmkt;
   let info = `<strong>${nomes[b]}</strong> — Valor de catálogo: R$ ${st.valorBem[b]} | Valor de mercado atual: R$ ${vmkt}`;
@@ -1255,23 +1424,101 @@ window._leilaoAtualizarSetup = function() {
   document.getElementById('leilaoSetupInfo').innerHTML = info;
 };
 
-window._leilaoIniciar = function() {
+window._leilaoAtualizarSetupCasa = function() {
   const vendIdx = parseInt(document.getElementById('leilaoVendedor').value);
-  const b       = parseInt(document.getElementById('leilaoBem').value);
+  const casaSel = document.getElementById('leilaoCasa');
   const st      = window._state;
   if (!st) return;
+
+  const prevPos = casaSel.value;
+  casaSel.innerHTML = '';
+
+  if (vendIdx < 0) {
+    document.getElementById('leilaoSetupInfo').innerHTML =
+      '<span class="text-warning fw-bold">O Banco não possui casas no tabuleiro.</span>';
+    document.getElementById('leilaoLanceMinimo').value = 0;
+    return;
+  }
+
+  const donos = st.casasDonos || {};
+  const posicoesDono = Object.keys(donos)
+    .filter(pos => donos[pos] === vendIdx)
+    .map(Number);
+
+  if (posicoesDono.length === 0) {
+    casaSel.innerHTML = '<option value="">— nenhuma —</option>';
+    document.getElementById('leilaoSetupInfo').innerHTML =
+      '<span class="text-danger fw-bold">Este jogador não possui casas no tabuleiro.</span>';
+    document.getElementById('leilaoLanceMinimo').value = 0;
+    return;
+  }
+
+  posicoesDono.forEach(pos => {
+    const opt = document.createElement('option');
+    opt.value = pos;
+    opt.textContent = window._getNomeCasa ? window._getNomeCasa(pos) : `Posição ${pos}`;
+    casaSel.appendChild(opt);
+  });
+
+  if (prevPos !== '' && posicoesDono.includes(parseInt(prevPos))) casaSel.value = prevPos;
+
+  const pos = parseInt(casaSel.value);
+  if (!isNaN(pos)) {
+    const nome = window._getNomeCasa ? window._getNomeCasa(pos) : `Posição ${pos}`;
+    let info = `<strong>${nome}</strong> (posição ${pos})`;
+    if (st.casasAluguel) info += ` — Aluguel cobrado: R$ ${st.casasAluguel}`;
+    document.getElementById('leilaoSetupInfo').innerHTML = info;
+    document.getElementById('leilaoLanceMinimo').value = st.casasAluguel ? st.casasAluguel * 5 : 50;
+  }
+};
+
+window._leilaoIniciar = function() {
+  const tipo    = window._leilaoGetTipo();
+  const vendIdx = parseInt(document.getElementById('leilaoVendedor').value);
+  const st      = window._state;
+  if (!st) return;
+
+  if (tipo === 'casa') {
+    if (vendIdx < 0) { alert('O Banco não pode vender casas do tabuleiro.'); return; }
+    const casaSel = document.getElementById('leilaoCasa');
+    const pos     = parseInt(casaSel.value);
+    if (isNaN(pos) || casaSel.value === '' || casaSel.value === undefined) {
+      alert('Selecione uma casa para vender.'); return;
+    }
+    if ((st.casasDonos?.[pos] ?? -1) !== vendIdx) {
+      alert('Este jogador não é dono desta casa!'); return;
+    }
+    const min  = parseFloat(document.getElementById('leilaoLanceMinimo').value) || 0;
+    const nome = window._getNomeCasa ? window._getNomeCasa(pos) : `Posição ${pos}`;
+    document.getElementById('leilaoFase2Header').textContent = `🔨 Licitando: 🏠 ${nome}`;
+    document.getElementById('leilaoMinDisplay').textContent  = `R$ ${min}`;
+    document.getElementById('leilaoLancesTbody').innerHTML   = _leilaoMontaLinhasLances(vendIdx, st);
+    window._leilaoCtx = { tipo: 'casa', vendIdx, pos, min };
+    document.getElementById('leilaoFase1').style.display = 'none';
+    document.getElementById('leilaoFase2').style.display = '';
+    return;
+  }
+
+  // tipo === 'bem'
+  const b = parseInt(document.getElementById('leilaoBem').value);
   if (vendIdx >= 0 && (st.jogadoresBens[vendIdx]?.[b] ?? 0) === 0) {
     alert('Vendedor não possui esse bem!'); return;
   }
-  const min = parseFloat(document.getElementById('leilaoLanceMinimo').value) || 0;
+  const min   = parseFloat(document.getElementById('leilaoLanceMinimo').value) || 0;
   const nomes = ['Celular','Moto','Carro','Casa'];
   document.getElementById('leilaoFase2Header').textContent = `🔨 Licitando: ${nomes[b]}`;
   document.getElementById('leilaoMinDisplay').textContent  = `R$ ${min}`;
-  // Monta tabela de lances
+  document.getElementById('leilaoLancesTbody').innerHTML   = _leilaoMontaLinhasLances(vendIdx, st);
+  window._leilaoCtx = { tipo: 'bem', vendIdx, b, min };
+  document.getElementById('leilaoFase1').style.display = 'none';
+  document.getElementById('leilaoFase2').style.display = '';
+};
+
+function _leilaoMontaLinhasLances(vendIdx, st) {
   let rows = '';
   for (let i = 0; i < st.qtJogadores; i++) {
     if (st.jogadoresPresentes[i] !== 'S') continue;
-    if (i === vendIdx) continue; // vendedor não pode comprar de si mesmo
+    if (i === vendIdx) continue;
     rows += `<tr>
       <td>${st.jogadores[i] || `Jogador ${i+1}`}</td>
       <td>R$ <span id="leilaoSaldo_${i}">${(st.jogadoresDinheiro[i] || 0).toFixed(2)}</span></td>
@@ -1279,15 +1526,11 @@ window._leilaoIniciar = function() {
       <td class="text-center"><input type="checkbox" id="leilaoPassou_${i}" onchange="if(this.checked) document.getElementById('leilaoLance_${i}').value=0"></td>
     </tr>`;
   }
-  document.getElementById('leilaoLancesTbody').innerHTML = rows;
-  // Guarda contexto
-  window._leilaoCtx = { vendIdx, b, min };
-  document.getElementById('leilaoFase1').style.display = 'none';
-  document.getElementById('leilaoFase2').style.display = '';
-};
+  return rows;
+}
 
 window._leilaoFechar = function() {
-  const { vendIdx, b, min } = window._leilaoCtx;
+  const { tipo, vendIdx, b, pos, min } = window._leilaoCtx;
   const st = window._state;
   let melhorLance = -1, melhorJogador = -1;
   for (let i = 0; i < st.qtJogadores; i++) {
@@ -1298,7 +1541,10 @@ window._leilaoFechar = function() {
     const lance = parseFloat(document.getElementById(`leilaoLance_${i}`)?.value) || 0;
     if (lance >= min && lance > melhorLance) { melhorLance = lance; melhorJogador = i; }
   }
-  const nomes = ['Celular','Moto','Carro','Casa'];
+  const nomes    = ['Celular','Moto','Carro','Casa'];
+  const nomeItem = tipo === 'casa'
+    ? `🏠 ${window._getNomeCasa ? window._getNomeCasa(pos) : `Posição ${pos}`}`
+    : nomes[b];
   let resultHtml;
   if (melhorJogador < 0) {
     resultHtml = `<span class="text-danger fw-bold">❌ Nenhum lance válido acima do mínimo (R$ ${min.toFixed(2)}). Leilão deserto.</span>`;
@@ -1306,7 +1552,7 @@ window._leilaoFechar = function() {
   } else {
     const nomeVend = vendIdx < 0 ? 'Banco' : (st.jogadores[vendIdx] || `Jogador ${vendIdx+1}`);
     resultHtml = `🏆 <strong>${st.jogadores[melhorJogador] || `Jogador ${melhorJogador+1}`}</strong> vence o leilão!<br>
-      Bem: <strong>${nomes[b]}</strong> | Lance: <strong>R$ ${melhorLance.toFixed(2)}</strong><br>
+      Item: <strong>${nomeItem}</strong> | Lance: <strong>R$ ${melhorLance.toFixed(2)}</strong><br>
       Vendedor: <strong>${nomeVend}</strong>`;
     window._leilaoCtx.winner = melhorJogador;
     window._leilaoCtx.lance  = melhorLance;
@@ -1323,9 +1569,13 @@ window._leilaoVoltar = function() {
 };
 
 window._leilaoConfirmar = function() {
-  const { vendIdx, b, winner, lance, deserto } = window._leilaoCtx;
+  const { tipo, vendIdx, b, pos, winner, lance, deserto } = window._leilaoCtx;
   if (deserto) { bootstrap.Modal.getInstance(document.getElementById('modalLeilao')).hide(); return; }
-  window._executarLeilao(vendIdx, b, winner, lance);
+  if (tipo === 'casa') {
+    window._executarLeilaoVendaCasa(vendIdx, pos, winner, lance);
+  } else {
+    window._executarLeilao(vendIdx, b, winner, lance);
+  }
   bootstrap.Modal.getInstance(document.getElementById('modalLeilao')).hide();
 };
 </script>

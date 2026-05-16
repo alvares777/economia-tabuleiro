@@ -1004,6 +1004,23 @@ body.login-page {
   overflow: hidden;
 }
 
+/* ── Modo colocação de bem no campo ───────────────────────────── */
+.bem-campo-valida {
+  outline: 2px solid #ffc107 !important;
+  outline-offset: -2px;
+  cursor: pointer !important;
+  animation: bemCampoValida 1s ease-in-out infinite alternate;
+}
+@keyframes bemCampoValida {
+  from { box-shadow: 0 0 6px rgba(255,193,7,0.5); }
+  to   { box-shadow: 0 0 16px rgba(255,193,7,0.9); }
+}
+.bem-campo-invalida {
+  opacity: 0.4;
+  cursor: not-allowed !important;
+  pointer-events: none;
+}
+
 /* ── Dado 3D especial (Bolsa) ───────────────────────────────── */
 .dado3d-scene {
   width: 110px;

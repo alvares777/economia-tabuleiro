@@ -1,22 +1,26 @@
 // main.js — ponto de entrada; conecta tudo
 
-import { state, initState, toSavePayload, fromLoadResponse, salarioDaRodada, calcCofrinho, calcValorMercadoBem } from './state.js';
+import { state, initState, toSavePayload, fromLoadResponse, salarioDaRodada, calcCofrinho, calcValorMercadoBem, calcRanking } from './state.js';
 import { saveGame, loadGame, getQuestions, apiGetActiveUsers } from './api.js';
 import { requireLogin, getUser, isAdmin, logout } from './auth.js';
 import { renderTabuleiro, atualizarPosicoes, atualizarDonos, atualizarCentro, getNomeCasa, CASAS_BONUS, COR_JOGADOR, LEGENDA_CASAS } from './board.js';
 import {
   atualizarIndicadores, mostrarMensagem, mostrarPergunta,
   renderJogadores, renderCofrinhos, renderAcoes, renderBens,
-  carregarVariaveis, salvarVariaveis, renderResumo, renderExtrato, tocarSom, sortearSomPasso, fmt,
+  carregarVariaveis, salvarVariaveis, renderResumo, renderExtrato, tocarSom, tocarSomLoop, sortearSomPasso, fmt,
   navPerguntaOperador, irParaPerguntaOperador, getPerguntaAtualOperador,
 } from './ui.js';
 
 window._navPerguntaOperador    = navPerguntaOperador;
 window._irParaPerguntaOperador = irParaPerguntaOperador;
 window.tocarSom                = tocarSom;
+window.tocarSomLoop            = tocarSomLoop;
 window._state                  = state;
 window._calcValorMercadoBem    = calcValorMercadoBem;
 window._legendaCasas           = LEGENDA_CASAS;
+window._casasBonus             = CASAS_BONUS;
+window._getNomeCasa            = getNomeCasa;
+window._salarioDaRodada        = salarioDaRodada;
 
 // ── Inicialização ─────────────────────────────────────────────────────────────
 
@@ -48,6 +52,20 @@ const _MSG_INQUEBRAVEIS = 'Você pode ser inquebrável economicamente falando! M
 
 const _NOMES_COF = ['Emergências', 'Sonhos', 'Aposentadoria', 'Doações'];
 
+function _atualizarBtnInquebraveis() {
+  const btnFim = document.getElementById('btnFim');
+  if (!btnFim) return;
+  if (_pendingInquebraveis && _pendingInquebraveis.player === state.jogador - 1) {
+    const depositado = _somarCofrinhoRodadaAtual(_pendingInquebraveis.player) - _pendingInquebraveis.cofrinhosTotaisAntes;
+    const falta = _pendingInquebraveis.minimo - depositado;
+    if (falta > 0.01) {
+      btnFim.textContent = `💪 Falta R$ ${fmt(falta)}`;
+      return;
+    }
+  }
+  btnFim.textContent = '✅ PRÓXIMO';
+}
+
 function _setEsperandoProximo(val) {
   _esperandoProximo = val;
   window._esperandoProximo = val;
@@ -61,6 +79,9 @@ function _setEsperandoProximo(val) {
   if (val) {
     state.vista = state.jogador;
     atualizarIndicadores();
+    _atualizarBtnInquebraveis();
+  } else {
+    if (btnFim) btnFim.textContent = '✅ PRÓXIMO';
   }
 }
 
@@ -362,7 +383,10 @@ function _modalMovimento(v, comDinheiro) {
 
   // Ações de Energia (índice 1) dobram o valor do dado
   const temEnergia = (state.jogadoresAcoes?.[p]?.[1] ?? 0) > 0;
-  if (temEnergia) v = v * 2;
+  if (temEnergia) {
+    v = v * 2;
+    window._valorDadoAtual = v; // garante que atalhos da navbar também usem o valor dobrado
+  }
   const energiaBadge  = document.getElementById('energiaBonus');
   const energiaAlerta = document.getElementById('energiaAlerta');
   if (energiaBadge)  energiaBadge.style.display  = temEnergia ? '' : 'none';
@@ -379,10 +403,10 @@ function _modalMovimento(v, comDinheiro) {
   const bancoEl         = document.getElementById('bancoOpcao');
   const bancoTexto      = document.getElementById('bancoOpcaoTexto');
   if (temBanco && bancoDisponivel && comDinheiro) {
-    const valBanco = posAtual;
+    const valBanco = posAtual * 2;
     const nomeCasa = getNomeCasa(posAtual) || `casa ${posAtual}`;
     if (bancoTexto) bancoTexto.innerHTML =
-      `Acertou! Receba <strong>R$&nbsp;${fmt(valBanco)}</strong> na casa <em>${nomeCasa}</em> (pos.&nbsp;${posAtual}) sem se mover. <span class="text-warning small">(opção suspensa na próxima rodada)</span>`;
+      `Acertou! Receba <strong>R$&nbsp;${fmt(valBanco)}</strong> na casa <em>${nomeCasa}</em> (pos.&nbsp;${posAtual} × 2 🏦) sem se mover. <span class="text-warning small">(opção suspensa na próxima rodada)</span>`;
     if (bancoEl) bancoEl.style.display = '';
     window._bancoPending = { p, valBanco, comDinheiro };
   } else {
@@ -444,37 +468,40 @@ function _modalMovimento(v, comDinheiro) {
     if (_movimentoUsado) return;
 
     const perdaSalario = comDinheiro ? ganho : 0;
-    let msg = `⚠️ Ao voltar, o salário da rodada não será aplicado.\n\n`;
+    let html = `<p>Ao voltar, o salário da rodada <strong>não será aplicado</strong>.</p>`;
     if (perdaSalario > 0) {
       const descMult = isEstrela
-        ? ` (dado ${v} × salário R$ ${fmt(sal)} × 3 ⭐ Casa Estrela)`
-        : ` (dado ${v} × salário R$ ${fmt(sal)})`;
-      msg += `Se avançasse ${v} casa${v > 1 ? 's' : ''}, você receberia R$ ${fmt(perdaSalario)}`
-           + descMult + `.\n\n`
-           + `Ao voltar você perderá esse valor.\n\n`;
+        ? `dado ${v} × salário R$ ${fmt(sal)} × 3 ⭐ Casa Estrela`
+        : `dado ${v} × salário R$ ${fmt(sal)}`;
+      html += `<p>Se avançasse <strong>${v} casa${v > 1 ? 's' : ''}</strong>, você receberia `
+            + `<strong class="text-success">R$ ${fmt(perdaSalario)}</strong> (${descMult}).</p>`
+            + `<p class="text-danger fw-bold">Ao voltar você abre mão desse valor.</p>`;
     } else {
-      msg += `Você não acertou a pergunta, portanto não receberia salário ao avançar.\n\n`;
+      html += `<p class="text-muted">Você não acertou a pergunta, portanto não receberia salário ao avançar.</p>`;
     }
-    msg += `Confirma que deseja voltar ${v} casa${v > 1 ? 's' : ''}?`;
+    html += `<p>Confirma que deseja voltar <strong>${v} casa${v > 1 ? 's' : ''}</strong>?</p>`;
 
-    if (!confirm(msg)) return;
-
-    tocarSom('voltar');
-    _movimentoUsado = true;
-    window._valorDadoAtual = 0;
-    window._syncBotoesMovimento?.();
-    m.hide();
-    const saldoAntes = state.jogadoresDinheiro[p];
-    _registrarEvento(p, 'MOVIMENTO', {
-      descricao: `Voltou ${v} casas`,
-      valor: 0,
-      dadoValor: v,
-      perguntaId: _ultimaPerguntaDado.perguntaId,
-      acertou:    _ultimaPerguntaDado.acertou,
-      saldoAntes,
-    });
-    _ultimaPerguntaDado = { perguntaId: null, acertou: null };
-    window.voltarJogador(v);
+    document.getElementById('modalConfirmaVoltarTexto').innerHTML = html;
+    document.getElementById('btnConfirmaVoltarOk').onclick = () => {
+      bootstrap.Modal.getInstance(document.getElementById('modalConfirmaVoltar')).hide();
+      tocarSom('voltar');
+      _movimentoUsado = true;
+      window._valorDadoAtual = 0;
+      window._syncBotoesMovimento?.();
+      m.hide();
+      const saldoAntes = state.jogadoresDinheiro[p];
+      _registrarEvento(p, 'MOVIMENTO', {
+        descricao: `Voltou ${v} casas`,
+        valor: 0,
+        dadoValor: v,
+        perguntaId: _ultimaPerguntaDado.perguntaId,
+        acertou:    _ultimaPerguntaDado.acertou,
+        saldoAntes,
+      });
+      _ultimaPerguntaDado = { perguntaId: null, acertou: null };
+      window.voltarJogador(v);
+    };
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalConfirmaVoltar')).show();
   };
 
   if (btnSo) {
@@ -485,6 +512,7 @@ function _modalMovimento(v, comDinheiro) {
       window._syncBotoesMovimento?.();
       m.hide();
       window.rolarDado(v);
+      _setEsperandoProximo(true);
     };
   }
 
@@ -632,6 +660,7 @@ function animarMovimento(p, totalCasas, direcao, onFim) {
         v.remove();
         _animando = false;
         if (btnDado) btnDado.disabled = false;
+        if (direcao === 1) _cobrarAluguelBensCaminho(p, path);
         onFim();
       }, 1500);
       return;
@@ -649,6 +678,155 @@ function animarMovimento(p, totalCasas, direcao, onFim) {
 
   setTimeout(moverProximo, 40);
 }
+
+function _cobrarAluguelBensCaminho(p, path) {
+  const campo = state.bensNoCampo;
+  if (!campo) return;
+  const cobrados = new Set();
+  path.forEach(pos => {
+    if (cobrados.has(pos)) return;
+    cobrados.add(pos);
+    const b = campo[pos];
+    if (!b || b.owner === p) return;
+    const { owner, bem } = b;
+    const aluguel = Math.round(calcValorMercadoBem(bem) * 0.10 * 100) / 100;
+    if (aluguel <= 0) return;
+    const nomeBem   = state.nomesBens[bem];
+    const nomeOwner = state.jogadores[owner] || `Jogador ${owner + 1}`;
+    const nomePag   = state.jogadores[p]     || `Jogador ${p + 1}`;
+    const saldoAntes      = state.jogadoresDinheiro[p];
+    const saldoAntesOwner = state.jogadoresDinheiro[owner];
+    state.jogadoresDinheiro[p]     -= aluguel;
+    state.jogadoresDinheiro[owner] += aluguel;
+    _registrarEvento(p, 'ALUGUEL_BEM_PAGO', {
+      descricao: `🏷️ Aluguel passagem ${nomeBem} (casa ${pos}): -R$${fmt(aluguel)} → ${nomeOwner}`,
+      valor: -aluguel, saldoAntes, bemIdx: bem,
+    });
+    _registrarEvento(owner, 'ALUGUEL_BEM_RECEBIDO', {
+      descricao: `🏷️ Aluguel passagem ${nomeBem} (casa ${pos}): +R$${fmt(aluguel)} ← ${nomePag}`,
+      valor: aluguel, saldoAntes: saldoAntesOwner, bemIdx: bem,
+    });
+  });
+  if (cobrados.size > 0) {
+    atualizarIndicadores();
+    agendarAutoSave();
+  }
+}
+
+// ── Bens no campo — modo de seleção por clique no tabuleiro ──────────────────
+
+let _modoBemCampo = null; // { bem, p } enquanto o jogador escolhe a casa
+
+function _aplicarDestaqueBemCampo() {
+  const divTab = document.getElementById('divTabuleiro');
+  if (!divTab) return;
+  const maxPos = _modoBemCampo ? state.jogadoresPosicao[_modoBemCampo.p] : 0;
+  divTab.querySelectorAll('.casa[data-pos]').forEach(el => {
+    const pos = parseInt(el.dataset.pos);
+    if (!_modoBemCampo) {
+      el.classList.remove('bem-campo-valida', 'bem-campo-invalida');
+    } else if (pos >= 1 && pos <= maxPos) {
+      el.classList.add('bem-campo-valida');
+      el.classList.remove('bem-campo-invalida');
+    } else {
+      el.classList.add('bem-campo-invalida');
+      el.classList.remove('bem-campo-valida');
+    }
+  });
+  const banner = document.getElementById('bemCampoBanner');
+  if (banner) banner.style.display = _modoBemCampo ? '' : 'none';
+}
+
+window.iniciarColocacaoBemCampo = function(bem) {
+  const p = state.vista - 1;
+  if ((state.jogadoresBens[p][bem] || 0) <= 0) return;
+  _modoBemCampo = { bem, p };
+  const bemNome = state.nomesBens[bem];
+  const banner  = document.getElementById('bemCampoBanner');
+  if (banner) banner.innerHTML =
+    `📍 Escolha uma casa para o <strong>${bemNome}</strong> — clique em qualquer casa até a posição ${state.jogadoresPosicao[p]}
+     &nbsp;<button class="btn btn-sm btn-outline-light py-0" onclick="window.cancelarColocacaoBemCampo()">✕ Cancelar</button>`;
+  mostrarPainel('divTabuleiro');
+  _aplicarDestaqueBemCampo();
+};
+
+window.cancelarColocacaoBemCampo = function() {
+  _modoBemCampo = null;
+  _aplicarDestaqueBemCampo();
+};
+
+window._cliqueCasaBemCampo = function(pos) {
+  if (!_modoBemCampo) return;
+  const { bem, p } = _modoBemCampo;
+  const maxPos = state.jogadoresPosicao[p];
+  if (pos < 1 || pos > maxPos) return;
+  if (state.bensNoCampo[pos] && state.bensNoCampo[pos].owner !== p) {
+    const outro = state.nomesBens[state.bensNoCampo[pos].bem];
+    mostrarMensagem(`Casa ${pos} já tem um ${outro} de outro jogador.`, 'erro');
+    return;
+  }
+  const vmkt    = calcValorMercadoBem(bem);
+  const aluguel = Math.round(vmkt * 0.10 * 100) / 100;
+  // Preenche a modal de confirmação
+  const el = document.getElementById('bemCampoConfirmTexto');
+  if (el) el.innerHTML =
+    `Colocar <strong>${state.nomesBens[bem]}</strong> na <strong>Casa ${pos}</strong>.<br><br>` +
+    `🏷️ Qualquer jogador que <em>passar</em> por esta casa irá te pagar ` +
+    `<strong class="text-warning">R$ ${fmt(aluguel)}</strong> de aluguel.`;
+  document.getElementById('bemCampoConfirmBtn').onclick = () => {
+    bootstrap.Modal.getInstance(document.getElementById('modalBemCampoConfirm')).hide();
+    window.colocarBemNoCampo(bem, pos);
+  };
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalBemCampoConfirm')).show();
+};
+
+window.colocarBemNoCampo = function(bem, pos) {
+  const p = state.vista - 1;
+  if ((state.jogadoresBens[p][bem] || 0) <= 0) return;
+  // Remove bem anterior do mesmo tipo que esse jogador já tiver no campo
+  for (let i = 0; i < 64; i++) {
+    const b = state.bensNoCampo[i];
+    if (b && b.owner === p && b.bem === bem) state.bensNoCampo[i] = null;
+  }
+  state.bensNoCampo[pos] = { owner: p, bem };
+  const aluguel = Math.round(calcValorMercadoBem(bem) * 0.10 * 100) / 100;
+  _registrarEvento(p, 'BEM_CAMPO_COLOCAR', {
+    descricao: `📍 ${state.nomesBens[bem]} colocado na casa ${pos} (aluguel: R$${fmt(aluguel)}/passagem)`,
+    valor: 0, saldoAntes: state.jogadoresDinheiro[p], bemIdx: bem,
+  });
+  _modoBemCampo = null;
+  _aplicarDestaqueBemCampo();
+  renderBens();
+  atualizarDonos();
+  agendarAutoSave();
+};
+
+window.removerBemDoCampo = function(pos) {
+  const p = state.vista - 1;
+  const b = state.bensNoCampo[pos];
+  if (!b || b.owner !== p) return;
+  state.bensNoCampo[pos] = null;
+  _registrarEvento(p, 'BEM_CAMPO_RETIRAR', {
+    descricao: `📍 ${state.nomesBens[b.bem]} retirado da casa ${pos}`,
+    valor: 0, saldoAntes: state.jogadoresDinheiro[p], bemIdx: b.bem,
+  });
+  renderBens();
+  atualizarDonos();
+  agendarAutoSave();
+};
+
+// Listener delegado no tabuleiro — intercepta cliques em modo bem-campo
+document.addEventListener('DOMContentLoaded', () => {
+  const divTab = document.getElementById('divTabuleiro');
+  if (!divTab) return;
+  divTab.addEventListener('click', e => {
+    if (!_modoBemCampo) return;
+    const casaEl = e.target.closest('.casa[data-pos]');
+    if (!casaEl) return;
+    e.stopPropagation();
+    window._cliqueCasaBemCampo(parseInt(casaEl.dataset.pos));
+  });
+});
 
 function _animarCasaPouso(pos, onFim) {
   const DURACAO = 5000;
@@ -754,8 +932,14 @@ function _alertaSaldoNeg(p) {
 }
 
 function processarCasa(p, dadoValor = 0) {
-  _pendingBolsa = null; // limpa pendência anterior a cada novo pouso
+  _pendingBolsa = null;
   const pos   = state.jogadoresPosicao[p];
+
+  // Casa 64 (índice 63 — "Viva de Renda"): jogador se aposenta
+  if (pos === 63) {
+    _aposentarJogador(p);
+    return;
+  }
   const nome  = getNomeCasa(pos);
   const bonus = CASAS_BONUS[pos];
 
@@ -876,6 +1060,8 @@ function processarCasa(p, dadoValor = 0) {
       'ok'
     );
     tocarSom('bom');
+    const _mqEl = document.getElementById('modalMensagem');
+    if (_mqEl) _mqEl.addEventListener('hidden.bs.modal', () => mostrarPainel('divCofrinhos'), { once: true });
 
   } else if (nome === 'EMERG') {
     const temSeguradora = (state.jogadoresAcoes?.[p]?.[2] ?? 0) > 0;
@@ -971,13 +1157,15 @@ window.proximoJogador = function() {
   do {
     proximo = proximo >= state.qtJogadores ? 1 : proximo + 1;
     if (proximo === state.jogador) break;
-  } while (state.jogadoresPresentes[proximo - 1] !== 'S');
+  } while (state.jogadoresPresentes[proximo - 1] !== 'S' || state.jogadoresAposentados[proximo - 1]);
 
   if (proximo <= state.jogador) {
     state.rodada++;
     // Correção do valor das ações: 2 × taxa de juros por rodada
     const fatorAcao = 1 + (2 * state.juros / 100);
     state.valorAcao = state.valorAcao.map(v => Math.round(v * fatorAcao * 100) / 100);
+    // Volatilidade dos dividendos a cada 5 rodadas
+    if (state.rodada % 5 === 0 && !state.fim) _atualizarVolatilidadeDividendos();
     if (state.rodada > state.rodadas) {
       state.fim = true;
       _pararCronometro();
@@ -1088,6 +1276,47 @@ function receberRendaBens() {
   }
 }
 
+function _atualizarVolatilidadeDividendos() {
+  for (let a = 0; a < 3; a++) state.dividendos[a] = 5  + Math.floor(Math.random() * 11); // 5–15%
+  for (let a = 3; a < 5; a++) state.dividendos[a] = 10 + Math.floor(Math.random() * 21); // 10–30%
+  const det = state.nomesAcoes.map((n, i) => `${n}: ${state.dividendos[i]}%`).join(' | ');
+  mostrarMensagem(`📈 Mercado em movimento! Novos dividendos:<br><small class="text-light">${det}</small>`, 'info');
+  agendarAutoSave();
+}
+
+function _aposentarJogador(p) {
+  if (state.jogadoresAposentados[p]) return;
+  state.jogadoresAposentados[p] = true;
+  const nome = state.jogadores[p] || `Jogador ${p + 1}`;
+  tocarSom('bom');
+  _registrarEvento(p, 'APOSENTADORIA', {
+    descricao: `🎉 ${nome} chegou à Casa 64 — Aposentado!`,
+    valor: 0,
+    saldoAntes: state.jogadoresDinheiro[p],
+  });
+  const nomEl = document.getElementById('aposentadoriaNome');
+  if (nomEl) nomEl.textContent = nome;
+  const rankEl = document.getElementById('aposentadoriaRank');
+  if (rankEl) {
+    const rank = calcRanking().findIndex(r => r.p === p) + 1;
+    rankEl.textContent = rank > 0 ? `#${rank}` : '—';
+  }
+  const modalEl = document.getElementById('modalAposentadoria');
+  if (modalEl) new bootstrap.Modal(modalEl).show();
+  agendarAutoSave();
+
+  // Encerra jogo se todos aposentados OU restar só 1 jogador ativo ainda em jogo
+  const ativos = Array.from({ length: state.qtJogadores }, (_, i) => i)
+    .filter(i => state.jogadoresPresentes[i] === 'S');
+  const aindaJogando = ativos.filter(i => !state.jogadoresAposentados[i]);
+  if (ativos.length > 0 && aindaJogando.length <= 1) {
+    state.fim = true;
+    _pararCronometro();
+    tocarSom('fim');
+    mostrarMensagem('🏆 Todos os jogadores se aposentaram! Fim de jogo!', 'ok');
+  }
+}
+
 function receberDividendos() {
   const p = state.jogador - 1;
   let total = 0;
@@ -1095,11 +1324,16 @@ function receberDividendos() {
   for (let a = 0; a < 5; a++) {
     const qty  = state.jogadoresAcoes[p][a];
     const taxa = state.dividendos[a];
-    if (qty > 0 && taxa > 0) {
-      const val = qty * (taxa / 100) * state.valorAcao[a];
+    // Banco, Energia, Seguradora (0-2): pagam a partir da 2ª ação comprada (qty - 1)
+    const qtyPaga = a < 3 ? Math.max(0, qty - 1) : qty;
+    if (qtyPaga > 0 && taxa > 0) {
+      const val = Math.round(qtyPaga * (taxa / 100) * state.valorAcao[a] * 100) / 100;
       total += val;
       state.jogadoresDividendosPorAcao[p][a] = (state.jogadoresDividendosPorAcao[p][a] || 0) + val;
-      partes.push(`${state.nomesAcoes[a]} ${qty}×${taxa}%: +R$${fmt(val)}`);
+      const label = a < 3
+        ? `${state.nomesAcoes[a]} ${qty}un→${qtyPaga}pagam×${taxa}%`
+        : `${state.nomesAcoes[a]} ${qty}×${taxa}%`;
+      partes.push(`${label}: +R$${fmt(val)}`);
     }
   }
   if (total > 0) {
@@ -1113,6 +1347,38 @@ function receberDividendos() {
     });
   }
 }
+
+// ── Leilão de Bens / Casas ───────────────────────────────────────────────────
+
+window._executarLeilaoVendaCasa = function(vendIdx, pos, winner, lance) {
+  const nomeCasa   = getNomeCasa(pos);
+  const nomeWinner = state.jogadores[winner]  || `Jogador ${winner + 1}`;
+  const nomeVend   = state.jogadores[vendIdx] || `Jogador ${vendIdx + 1}`;
+
+  const saldoWinnerAntes = state.jogadoresDinheiro[winner];
+  const saldoVendAntes   = state.jogadoresDinheiro[vendIdx];
+
+  state.jogadoresDinheiro[winner]  -= lance;
+  state.jogadoresDinheiro[vendIdx] += lance;
+  state.casasDonos[pos]             = winner;
+
+  _registrarEvento(winner, 'LEILAO_COMPRA', {
+    descricao: `🔨 Leilão: comprou casa "${nomeCasa}" (pos.${pos}) por R$${fmt(lance)} de ${nomeVend}`,
+    valor: -lance, saldoAntes: saldoWinnerAntes,
+  });
+  _registrarEvento(vendIdx, 'LEILAO_VENDA', {
+    descricao: `🔨 Leilão: vendeu casa "${nomeCasa}" (pos.${pos}) por R$${fmt(lance)} para ${nomeWinner}`,
+    valor: lance, saldoAntes: saldoVendAntes,
+  });
+
+  atualizarIndicadores();
+  atualizarDonos();
+  agendarAutoSave();
+  mostrarMensagem(
+    `🔨 Leilão concluído!<br><strong>${nomeWinner}</strong> comprou a casa <strong>${nomeCasa}</strong> (pos. ${pos}) por <strong>R$ ${fmt(lance)}</strong> de <strong>${nomeVend}</strong>.`,
+    'ok'
+  );
+};
 
 // ── Leilão de Bens ────────────────────────────────────────────────────────────
 
@@ -1318,6 +1584,7 @@ window.depositarCofrinho = function(c) {
   if (input) input.value = 0;
   renderCofrinhos();
   atualizarIndicadores();
+  _atualizarBtnInquebraveis();
   tocarSom('moeda');
   agendarAutoSave();
 };
@@ -1411,6 +1678,13 @@ window.comprarBem = function(b) {
 window.devolverBem = function(b) {
   const p      = state.vista - 1;
   if (state.jogadoresBens[p][b] <= 0) return;
+  // Se o último exemplar for devolvido, retira do campo automaticamente
+  if (state.jogadoresBens[p][b] === 1) {
+    for (let i = 0; i < 64; i++) {
+      const bc = state.bensNoCampo?.[i];
+      if (bc && bc.owner === p && bc.bem === b) state.bensNoCampo[i] = null;
+    }
+  }
   const refund = state.valorBem[b] * 0.5;
   const saldoAntes = state.jogadoresDinheiro[p];
   state.jogadoresBens[p][b]--;
@@ -1496,7 +1770,13 @@ window.salvarJogo = async function() {
   }
 };
 
-window.irParaLista = function() {
+window.irParaLista = async function() {
+  try {
+    salvarVariaveis();
+    const result = await saveGame(toSavePayload());
+    state.gameId = result.gameId;
+    localStorage.setItem('economia_last_game', result.gameId);
+  } catch (_) {}
   location.href = '/lista.html';
 };
 

@@ -38,7 +38,7 @@ const state = {
   nomesBens:  ['Celular', 'Moto', 'Carro', 'Casa'],
 
   // Ações: 0=Banco, 1=Energia, 2=Seguradora, 3=Saneamento, 4=Telecom
-  dividendos:  [0, 0, 0, 20, 20],
+  dividendos:  [10, 10, 10, 20, 20],
   valorAcao:   [5, 20, 5, 15, 15],
   nomesAcoes:  ['Banco', 'Energia', 'Seguradora', 'Saneamento', 'Telecom'],
 
@@ -68,8 +68,14 @@ const state = {
   // Donos das casas de bônus: índice = posição no tabuleiro, valor = índice do jogador (null = sem dono)
   casasDonos: [],
 
+  // Bens físicos colocados no tabuleiro: índice = posição, valor = { owner, bem } ou null
+  bensNoCampo: [],
+
   // Rodada em que cada jogador usou a opção Banco pela última vez (null = nunca usou)
   jogadoresBancoUso: [],
+
+  // true = jogador chegou à casa 64 e está aposentado; segue no ranking mas não joga mais
+  jogadoresAposentados: [],
 
   // Extrato: conta corrente por evento
   extrato: [],
@@ -102,6 +108,9 @@ function initState() {
   if (!state.casasDonos || state.casasDonos.length !== 64) {
     state.casasDonos = new Array(64).fill(null);
   }
+  if (!state.bensNoCampo || state.bensNoCampo.length !== 64) {
+    state.bensNoCampo = new Array(64).fill(null);
+  }
   if (!state.jogadoresBancoUso || state.jogadoresBancoUso.length !== MAX_JOGADORES) {
     state.jogadoresBancoUso = Array(MAX_JOGADORES).fill(null);
   }
@@ -113,6 +122,9 @@ function initState() {
   }
   if (!state.jogadoresDividendosPorAcao || state.jogadoresDividendosPorAcao.length !== MAX_JOGADORES) {
     state.jogadoresDividendosPorAcao = Array.from({ length: MAX_JOGADORES }, () => Array(MAX_ACOES).fill(0));
+  }
+  if (!state.jogadoresAposentados || state.jogadoresAposentados.length !== MAX_JOGADORES) {
+    state.jogadoresAposentados = Array(MAX_JOGADORES).fill(false);
   }
   // Sincroniza a vista com o jogador ativo ao iniciar
   state.vista = state.jogador;
@@ -227,6 +239,8 @@ function toTabuleiroPayload() {
     bensLucro:         JSON.stringify(state.jogadoresBensLucro),
     casasAluguel:      JSON.stringify(state.jogadoresCasasAluguel),
     dividendosPorAcao: JSON.stringify(state.jogadoresDividendosPorAcao),
+    aposentados:       JSON.stringify(state.jogadoresAposentados),
+    bensCampo:         JSON.stringify(state.bensNoCampo),
   };
 }
 
@@ -357,6 +371,12 @@ function fromLoadResponse(data) {
   try {
     state.volumeSons = JSON.parse(t.ao_volumes_sons || 'null') || { ...DEFAULT_VOLUMES };
   } catch { state.volumeSons = { ...DEFAULT_VOLUMES }; }
+  try {
+    state.jogadoresAposentados = JSON.parse(t.ao_aposentados || 'null') || Array(MAX_JOGADORES).fill(false);
+  } catch { state.jogadoresAposentados = Array(MAX_JOGADORES).fill(false); }
+  try {
+    state.bensNoCampo = JSON.parse(t.ao_bens_campo || 'null') || new Array(64).fill(null);
+  } catch { state.bensNoCampo = new Array(64).fill(null); }
 
   initState();
 

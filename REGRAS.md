@@ -1,7 +1,7 @@
 # Regras — Economia dos Milionários
 
 > Manual do jogo gerado a partir do código-fonte.  
-> Última atualização: 2026-05-13  
+> Última atualização: 2026-05-15  
 > Stack: Node.js + PostgreSQL + Bootstrap 5
 
 ---
@@ -92,7 +92,7 @@ O salário cresce a cada rodada, simulando progressão de carreira.
 |-------|---------|-------|
 | ▶ Avançar | Move `dado` casas para frente **+ recebe** `salário × dado` | Move `dado` casas para frente, **sem dinheiro** |
 | ◀ Voltar | Move `dado` casas para trás, **sem dinheiro** | Move `dado` casas para trás, **sem dinheiro** |
-| 💰 Só $ | Recebe `salário × dado` **sem mover** | Botão oculto |
+| 💰 Só $ | Recebe `salário × dado` **sem mover** (habilita botão FIM) | Botão oculto |
 
 ### 5.3 Animação de Movimento
 
@@ -157,7 +157,7 @@ Abaixo, todas as casas e seus efeitos:
 | **Penalidade** (número negativo) | Paga `\|bônus\| × salário_rodada` (pode ficar negativo) |
 | **Joga de novo** (pos. 60) | Rola o dado novamente **sem trocar a vez** |
 | **Tá quase** (pos. 62) | Sem efeito — motivacional |
-| **Viva de Renda** (pos. 63) | Casa final — sem efeito automático |
+| **Viva de Renda** (pos. 63) | **Aposentadoria** — jogador sai do jogo, permanece no ranking, outros continuam |
 
 ### 7.2 Mapa Completo das Casas
 
@@ -219,7 +219,7 @@ Abaixo, todas as casas e seus efeitos:
 | 60 | Joga de novo | Rola o dado de novo |
 | 61 | Que susto -07 | −7 sal |
 | 62 | Tá quase | — |
-| 63 | Viva de Renda :) | — |
+| 63 | Viva de Renda :) | 🎉 **APOSENTADORIA** — jogador para de jogar e vai para o ranking |
 
 > **"sal"** = `salário_rodada` do momento do pouso.
 
@@ -276,7 +276,21 @@ Ao pousar nessas casas, o jogador **deve pagar** o valor configurado para o bem 
 - A posição 9 (`$ CEL`) também concede um bônus de `+20 × salário_rodada` (ambos aplicados juntos).
 - Os valores padrão dos bens são configuráveis no painel **⚙️ Variáveis**.
 
-### 8.5 Joga de Novo (pos. 60)
+### 8.5 Viva de Renda — Aposentadoria (pos. 63)
+
+Ao pousar na **casa 64** (posição 63 — "Viva de Renda :)"), o jogador está **aposentado**:
+
+1. O sistema toca o som **"bom"** e exibe um modal de celebração.
+2. O jogador não participa mais de nenhuma rodada (turno é pulado automaticamente).
+3. O jogador **permanece no ranking** com sua riqueza líquida acumulada até o momento da aposentadoria.
+4. Os demais jogadores continuam jogando normalmente.
+5. Se **todos** os jogadores ativos se aposentarem, o jogo encerra imediatamente.
+
+> Jogadores aposentados ainda são exibidos no tabuleiro e nos painéis de consulta.
+
+---
+
+### 8.6 Joga de Novo (pos. 60)
 
 O jogador rola o dado novamente **sem trocar a vez** nem cobrar despesas.
 
@@ -419,15 +433,22 @@ O operador pode iniciar um leilão a qualquer momento pelo botão **🔨 Leilão
 
 Disponíveis apenas quando **"Ensina Ações"** está ativo.
 
-| Empresa | Valor unit. | Dividendo |
-|---------|------------|-----------|
-| Banco | R$ 5 | 0 % |
-| Energia | R$ 20 | 0 % |
-| Seguradora | R$ 5 | 0 % |
-| Saneamento | R$ 15 | 20 % |
-| Telecom | R$ 15 | 20 % |
+| Empresa | Valor unit. (padrão) | Dividendo padrão | Regra de pagamento |
+|---------|---------------------|------------------|--------------------|
+| Banco | R$ 5 | 10 % | A partir da **2ª ação** (qty − 1 recebem) |
+| Energia | R$ 20 | 10 % | A partir da **2ª ação** (qty − 1 recebem) |
+| Seguradora | R$ 5 | 10 % | A partir da **2ª ação** (qty − 1 recebem) |
+| Saneamento | R$ 15 | 20 % | **Todas** as ações pagam |
+| Telecom | R$ 15 | 20 % | **Todas** as ações pagam |
 
-- **Dividendos**: recebidos ao final de cada turno (`dividendo% × valor × quantidade`).
+- **Dividendos**: recebidos ao final de cada turno (`dividendo% × valor × quantidade_pagante`).
+  - Banco, Energia e Seguradora: a primeira ação funciona como "chave de acesso" — o jogador precisa ter **≥ 2** para receber dividendos; a quantidade pagante é `quantidade − 1`.
+  - Saneamento e Telecom: todas as ações pagam, sem desconto.
+- **Volatilidade**: a cada **5 rodadas completas**, os dividendos são reajustados aleatoriamente — simulando o mercado real:
+  - Banco, Energia, Seguradora: novas taxas entre **5 % e 15 %**
+  - Saneamento, Telecom: novas taxas entre **10 % e 30 %**
+  - O sistema exibe uma mensagem informativa com os novos valores.
+- Os valores iniciais de dividendo são editáveis no painel **⚙️ Variáveis** (quadrante Ações).
 - O jogador pode comprar ou vender 1 ação por clique no painel **📈 Ações**.
 - **Correção de valor por rodada**: ao final de cada rodada completa (quando todos os jogadores passaram a vez), o valor de **todas as ações** é corrigido por `2 × Juros%`. Exemplo: Juros = 5 % → ações sobem 10 % por rodada.
 - **Bônus de Energia** ⚡: jogador que possuir ao menos 1 ação de **Energia** tem o **valor do dado automaticamente dobrado** em cada rolagem. Exemplo: dado mostra 3 → o jogador se move 6 casas e ganha `salário × 6` (ou `6 × salário × 3` em casa ESTRELA). O sistema exibe um aviso no modal de movimento.
@@ -548,7 +569,7 @@ O extrato inclui validação de saldo: compara o saldo calculado pelo extrato co
 > Itens a decidir antes da publicação final do manual.
 
 - [ ] **BOLSA** (quando `ensinaAcoes = S`): a compra ou venda de ação deve ser **obrigatória** ao pousar? Ou apenas educativa?
-- [ ] **Viva de Renda (pos. 63)**: ao chegar nessa casa, o jogador deve ser declarado vencedor imediatamente, ou aguarda o fim das rodadas?
+- [x] **Viva de Renda (pos. 63)**: ao pousar, o jogador é aposentado (para de jogar mas continua no ranking); os demais seguem jogando até fim das rodadas ou todos se aposentarem.
 - [ ] **Tá quase (pos. 62)**: manter como casa neutra/motivacional?
 - [ ] **Penalidades e manutenção**: o dinheiro pago vai para um "banco central" ou simplesmente sai do jogo?
 - [ ] **Obrigatoriedade das casas $**: o jogador que não tem dinheiro suficiente para pagar o bem (saldo negativo) deve ser obrigado a sacar do cofrinho imediatamente ou apenas fica com saldo negativo?

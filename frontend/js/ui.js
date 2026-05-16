@@ -55,6 +55,18 @@ export function tocarSom(tipo) {
   audio.play().catch(() => {});
 }
 
+export function tocarSomLoop(tipo) {
+  if (!state.emiteSom) return null;
+  const src = SONS[tipo];
+  if (!src || Array.isArray(src)) return null;
+  const vol = ((state.volumeSons?.[tipo] ?? DEFAULT_VOLUMES[tipo] ?? 100) / 100);
+  const a = new Audio(src);
+  a.volume = vol;
+  a.loop = true;
+  a.play().catch(() => {});
+  return a;
+}
+
 export function mostrarMensagem(texto, tipo = 'info') {
   const el = document.getElementById('modalMensagemTexto');
   if (el) el.innerHTML = texto;
@@ -415,6 +427,49 @@ export function renderBens() {
   });
   tbody.innerHTML = html;
 
+  // Bens no campo — aluguel de passagem
+  const campoEl = document.getElementById('divBensNoCampo');
+  if (campoEl) {
+    const meusPosicionados = [];
+    (state.bensNoCampo || []).forEach((b, pos) => { if (b && b.owner === p) meusPosicionados.push({ pos, bem: b.bem }); });
+    const maxPos = state.jogadoresPosicao[p];
+    const disponiveis = state.nomesBens.map((nome, b) => ({ b, nome })).filter(({ b }) => (state.jogadoresBens[p][b] || 0) > 0);
+
+    let html = '<div class="border border-warning rounded p-2">';
+    html += '<p class="text-warning small fw-bold mb-2">📍 Bens no Campo — Aluguel de Passagem (10% do valor de mercado)</p>';
+
+    if (meusPosicionados.length > 0) {
+      html += '<div class="mb-2">';
+      meusPosicionados.forEach(({ pos, bem }) => {
+        const aluguel = Math.round(calcValorMercadoBem(bem) * 0.10 * 100) / 100;
+        html += `<div class="d-flex align-items-center gap-2 mb-1">
+          <span class="badge bg-warning text-dark">Casa ${pos}</span>
+          <span class="small">${_BEM_ICONE[bem]} ${state.nomesBens[bem]}</span>
+          <span class="text-success small">+R$ ${fmt(aluguel)}/passagem</span>
+          <button class="btn btn-sm btn-outline-danger py-0 px-1 ms-auto" onclick="window.removerBemDoCampo(${pos})">✕ Retirar</button>
+        </div>`;
+      });
+      html += '</div>';
+    }
+
+    if (disponiveis.length > 0 && maxPos > 0) {
+      html += `<div class="d-flex flex-wrap gap-2 mt-1">
+        ${disponiveis.map(({ b, nome }) => `
+          <button class="btn btn-sm btn-warning"
+            onclick="window.iniciarColocacaoBemCampo(${b})">
+            📍 ${_BEM_ICONE[b]} ${nome}
+          </button>`).join('')}
+      </div>
+      <div class="text-light small mt-1">Posição atual: <strong>${maxPos}</strong> — pode colocar nas casas 1 a ${maxPos}</div>`;
+    } else if (maxPos === 0) {
+      html += '<div class="text-light small">Mova-se pelo tabuleiro para poder colocar bens.</div>';
+    }
+
+    html += '</div>';
+    campoEl.innerHTML = html;
+    campoEl.style.display = '';
+  }
+
   // Imóveis do tabuleiro (casas de bônus que o jogador é dono)
   const casasEl = document.getElementById('divCasasTabuleiro');
   if (casasEl) {
@@ -498,6 +553,12 @@ export function carregarVariaveis() {
   setVal('varValorSeguradora', state.valorAcao[2]);
   setVal('varValorSaneamento', state.valorAcao[3]);
   setVal('varValorTelecom',    state.valorAcao[4]);
+  // Dividendos por ação
+  setVal('varDivBanco',      state.dividendos[0]);
+  setVal('varDivEnergia',    state.dividendos[1]);
+  setVal('varDivSeguradora', state.dividendos[2]);
+  setVal('varDivSaneamento', state.dividendos[3]);
+  setVal('varDivTelecom',    state.dividendos[4]);
 }
 
 export function salvarVariaveis() {
@@ -534,6 +595,12 @@ export function salvarVariaveis() {
   state.valorAcao[2] = getFloat('varValorSeguradora') || state.valorAcao[2];
   state.valorAcao[3] = getFloat('varValorSaneamento') || state.valorAcao[3];
   state.valorAcao[4] = getFloat('varValorTelecom')    || state.valorAcao[4];
+  // Dividendos por ação (permite 0)
+  const _divIds = ['varDivBanco','varDivEnergia','varDivSeguradora','varDivSaneamento','varDivTelecom'];
+  _divIds.forEach((id, a) => {
+    const v = parseFloat(document.getElementById(id)?.value ?? '');
+    if (!isNaN(v) && v >= 0) state.dividendos[a] = v;
+  });
 }
 
 function setVal(id, v)   { const el = document.getElementById(id); if (el) el.value = v; }
@@ -561,6 +628,7 @@ const _TIPO_LABEL = {
   CUSTO_BENS:           '🏠 Manutenção',
   JUROS_PAGOS:          '💸 Juros Pagos',
   DIVIDENDOS:           '📈 Dividendos',
+  APOSENTADORIA:        '🎉 Aposentadoria',
   COMPRA_BEM:           '🛒 Compra Bem',
   DEVOLUCAO_BEM:        '↩ Devol. Bem',
   COMPRA_ACAO:          '📈 Compra Ação',
@@ -569,6 +637,10 @@ const _TIPO_LABEL = {
   PAGAMENTO_EMPRESTIMO: '💸 Pag. Dívida',
   ALUGUEL_PAGO:         '🏠 Aluguel pago',
   ALUGUEL_RECEBIDO:     '🏠 Aluguel recebido',
+  ALUGUEL_BEM_PAGO:     '🏷️ Aluguel bem pago',
+  ALUGUEL_BEM_RECEBIDO: '🏷️ Aluguel bem recebido',
+  BEM_CAMPO_COLOCAR:    '📍 Bem no campo',
+  BEM_CAMPO_RETIRAR:    '📍 Bem retirado',
   BANCO_CASA:           '🏦 Banco (ficou)',
   RENDA_BENS:           '📱 Renda de bens',
   LEILAO_COMPRA:        '🔨 Compra em Leilão',

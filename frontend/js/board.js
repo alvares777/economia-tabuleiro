@@ -527,14 +527,24 @@ function _renderDonoIcon(p) {
   return `<div class="piao-dono" title="${title}" style="background:${cor};">${p + 1}</div>`;
 }
 
+const _BEM_CAMPO_ICONE = ['📱', '🏍️', '🚗', '🏠'];
+
 export function atualizarDonos() {
   const donos = state.casasDonos;
+  const campo = state.bensNoCampo;
   if (!donos) return;
   for (let i = 0; i < 64; i++) {
     const el = document.getElementById(`cd-${i}`);
     if (!el) continue;
     const d = donos[i];
-    el.innerHTML = (d !== null && d !== undefined) ? _renderDonoIcon(d) : '';
+    const b = campo?.[i];
+    let html = (d !== null && d !== undefined) ? _renderDonoIcon(d) : '';
+    if (b) {
+      const nomeOwner = state.jogadores?.[b.owner] || `J${b.owner + 1}`;
+      html += `<span title="🏷️ ${_BEM_CAMPO_ICONE[b.bem]} de ${nomeOwner} — aluguel de passagem"
+        style="font-size:0.7em;line-height:1;cursor:default">${_BEM_CAMPO_ICONE[b.bem]}</span>`;
+    }
+    el.innerHTML = html;
   }
 }
 
