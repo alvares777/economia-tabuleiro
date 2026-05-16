@@ -295,6 +295,7 @@ export function renderCofrinhos() {
 
   // Regras de saque: EMERG → cofr. 0; SONHOS → cofr. 1; saldo negativo → qualquer
   const podeSacar = (c) => {
+    if (c === 3) return false;
     if (saldo < 0) return true;
     if (nomeCasa === 'EMERG'  && c === 0) return true;
     if (nomeCasa === 'SONHOS' && c === 1) return true;

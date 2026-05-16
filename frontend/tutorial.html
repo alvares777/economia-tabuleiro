@@ -386,11 +386,10 @@ const SLIDES = [
         💭 <strong>SONHOS</strong> — você pode sacar do Cofrinho de <strong>Sonhos.</strong>
       </div>
       <div class="bloco bloco-verde">
-        ⚠️ Se o seu saldo ficar <strong>negativo</strong>, você pode sacar de <strong>qualquer</strong> cofrinho.<br>
-        Mas atenção: saques em saldo negativo pagam <strong>Imposto de Renda</strong> sobre o valor sacado
-        (exceto o Cofrinho de Doações).<br><br>
+        ⚠️ Se o seu saldo ficar <strong>negativo</strong>, você pode sacar de <strong>qualquer</strong> cofrinho (exceto Doações).<br>
+        Mas atenção: saques em saldo negativo pagam <strong>Imposto de Renda</strong> sobre o valor sacado.<br><br>
         💡 Se o turno passar com saldo negativo, você leva uma <strong>multa de 20%</strong>!
-        Use os cofrinhos ou peça empréstimo antes de encerrar o turno.
+        Use os cofrinhos (exceto Doações) ou peça empréstimo antes de encerrar o turno.
       </div>
     `
   },
@@ -412,23 +411,6 @@ const SLIDES = [
     `
   },
   {
-    emoji: '🐷',
-    titulo: 'Os 4 Cofrinhos',
-    corpo: `
-      <p>Cada jogador tem <strong>4 cofrinhos</strong> que rendem <strong>10% por rodada:</strong></p>
-      <div class="bloco">
-        🚨 <strong>Emergências</strong> — para imprevistos da vida<br>
-        💭 <strong>Sonhos</strong> — para realizar seus objetivos<br>
-        👴 <strong>Aposentadoria</strong> — para o futuro (conta no ranking!)<br>
-        ❤️ <strong>Doações</strong> — abate do imposto no ranking final!
-      </div>
-      <div class="bloco bloco-verde">
-        ⭐ <strong>Superdica:</strong> A PRIMEIRA vez que você deposita em qualquer cofrinho,
-        o valor <strong>DOBRA</strong> automaticamente! Não perca essa chance — comece logo!
-      </div>
-    `
-  },
-  {
     emoji: '🏠',
     titulo: 'Comprando Bens',
     corpo: `
@@ -446,6 +428,23 @@ const SLIDES = [
     `
   },
   {
+    emoji: '🐷',
+    titulo: 'Os 4 Cofrinhos',
+    corpo: `
+      <p>Cada jogador tem <strong>4 cofrinhos</strong> que rendem <strong>10% por rodada:</strong></p>
+      <div class="bloco">
+        🚨 <strong>Emergências</strong> — para imprevistos da vida<br>
+        💭 <strong>Sonhos</strong> — para realizar seus objetivos<br>
+        👴 <strong>Aposentadoria</strong> — para o futuro (conta no ranking!)<br>
+        ❤️ <strong>Doações</strong> — abate do imposto no ranking final! (não pode ser sacado)
+      </div>
+      <div class="bloco bloco-verde">
+        ⭐ <strong>Superdica:</strong> A PRIMEIRA vez que você deposita em qualquer cofrinho,
+        o valor <strong>DOBRA</strong> automaticamente! Seja estratégico e veja o melhor momento de aplicar. Cuidado com a regra Inquebráveis!
+      </div>
+    `
+  },
+  {
     emoji: '📈',
     titulo: 'Ações da Bolsa',
     corpo: `
@@ -456,9 +455,14 @@ const SLIDES = [
         ⚪ <strong>BRANCO</strong> — escolha livre: compra, venda ou nada!
       </div>
       <p>Ações pagam <strong>dividendos</strong> (% do valor) no fim de cada turno — renda passiva!</p>
-      <div class="bloco bloco-verde">
-        ⚡ Ação de <strong>Energia</strong> dobra o número do seu dado a cada rolagem!<br>
-        🛡️ Ação de <strong>Seguradora</strong> cancela o prejuízo em certas casas de penalidade!
+      <div class="bloco">
+        🏦 <strong>Banco</strong> (R$5) · 10% dividendo · 2ª ação em diante<br>
+        ⚡ <strong>Energia</strong> (R$20) · 10% dividendo · 2ª ação em diante<br>
+        &nbsp;&nbsp;&nbsp;→ <em>Dobra o número do dado em toda rolagem!</em><br>
+        🛡️ <strong>Seguradora</strong> (R$5) · 10% dividendo · 2ª ação em diante<br>
+        &nbsp;&nbsp;&nbsp;→ <em>Cancela penalidade nas casas Erro, Esc Ruim e Nunca Desista!</em><br>
+        💧 <strong>Saneamento</strong> (R$15) · 20% dividendo · todas as ações pagam<br>
+        📡 <strong>Telecom</strong> (R$15) · 20% dividendo · todas as ações pagam
       </div>
     `
   },
@@ -519,7 +523,7 @@ const SLIDES = [
     corpo: `
       <p>Parabéns! Agora você conhece as regras do <strong>Economia dos Milionários!</strong></p>
       <div class="bloco">
-        ✅ <strong>Guarde dinheiro</strong> nos cofrinhos — especialmente no N.QUEBRE!<br>
+        ✅ <strong>Guarde dinheiro</strong> nos cofrinhos e receba renda a cada rodada.<br>
         ✅ <strong>Compre bens</strong> que geram renda passiva<br>
         ✅ <strong>Acerte as perguntas</strong> — conhecimento vale dinheiro!<br>
         ✅ <strong>Invista em ações</strong> para renda no fim do turno<br>

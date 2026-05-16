@@ -349,6 +349,7 @@ Para cada rodada r (em ordem cronológica):
 - O botão **↩ Sacar** aparece no cofrinho elegível (conforme regras §8.2 e §8.3).
 - O valor é descontado proporcionalmente dos aportes já realizados.
 - O valor sacado retorna ao saldo em caixa e é registrado no extrato.
+- **O Cofrinho de Doações (cofrinho 4) não pode ser sacado** — o valor depositado é considerado doado e permanece intocável até o ranking final.
 
 ---
 
@@ -483,7 +484,7 @@ As cobranças de manutenção de bens e juros de empréstimos são **limitadas a
 
 ### 13.1 IR sobre Saque Emergencial
 
-Quando o saldo do jogador está **negativo** e ele saca de qualquer cofrinho (exceto o cofrinho de Doações), o sistema aplica **Imposto de Renda** sobre o valor sacado:
+Quando o saldo do jogador está **negativo** e ele saca de qualquer cofrinho, o sistema aplica **Imposto de Renda** sobre o valor sacado:
 
 ```
 valor_bruto_sacado  = valor retirado do cofrinho
@@ -492,7 +493,7 @@ valor_líquido       = valor_bruto_sacado − IR
 saldo += valor_líquido   (o IR não retorna ao jogador)
 ```
 
-> **Conceito pedagógico:** saques emergenciais em investimentos de longo prazo sofrem tributação na vida real (Imposto de Renda Retido na Fonte). O cofrinho de Doações é isento porque já possui natureza de abatimento fiscal.
+> **Conceito pedagógico:** saques emergenciais em investimentos de longo prazo sofrem tributação na vida real (Imposto de Renda Retido na Fonte). O cofrinho de Doações não pode ser sacado — o dinheiro doado é irrecuperável, assim como na vida real.
 
 ### 13.2 Multa por Saldo Negativo ao Passar o Turno
 

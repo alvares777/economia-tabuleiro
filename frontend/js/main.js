@@ -54,8 +54,14 @@ const _NOMES_COF = ['Emergências', 'Sonhos', 'Aposentadoria', 'Doações'];
 
 function _abrirModalEscolherCofrinho() {
   if (!_pendingInquebraveis) return;
+  const p = _pendingInquebraveis.player;
   const elVal = document.getElementById('inquebraveisValorModal');
   if (elVal) elVal.textContent = fmt(_pendingInquebraveis.minimo);
+  const labels = ['🚨 Emergências', '💭 Sonhos', '👴 Aposentadoria', '❤️ Doações'];
+  for (let c = 0; c < 4; c++) {
+    const btn = document.getElementById(`btnCofInq${c}`);
+    if (btn) btn.textContent = `${labels[c]} — R$ ${fmt(calcCofrinho(p, c))}`;
+  }
   bootstrap.Modal.getOrCreateInstance(document.getElementById('modalEscolherCofrinho')).show();
 }
 window._abrirModalEscolherCofrinho = _abrirModalEscolherCofrinho;
@@ -1650,6 +1656,10 @@ window.depositarCofrinho = function(c) {
 };
 
 window.sacarCofrinho = function(c) {
+  if (c === 3) {
+    mostrarMensagem('O Cofrinho de Doações não pode ser sacado — o dinheiro foi doado! 🎁', 'erro');
+    return;
+  }
   const input = document.getElementById(`saqueCofrinho${c}`);
   const valor = parseFloat(input?.value) || 0;
   if (valor <= 0) return;
