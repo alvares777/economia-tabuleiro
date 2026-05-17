@@ -156,6 +156,15 @@ async function init() {
       menuList.appendChild(hr);
       menuList.appendChild(li);
     }
+
+    // Easter egg: digitar "dev" fora de inputs → abre painel dev
+    let _easterSeq = '';
+    document.addEventListener('keydown', (e) => {
+      const tag = document.activeElement?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      _easterSeq = (_easterSeq + e.key.toLowerCase()).slice(-3);
+      if (_easterSeq === 'dev') { _easterSeq = ''; _abrirCheatPanel(); }
+    });
   }
 
   initState();
@@ -468,7 +477,7 @@ function _modalMovimento(v, comDinheiro) {
   }
 
   // Verifica se o destino é uma casa Estrela (EST) → dado × salário × 3
-  const landingPos  = ((state.jogadoresPosicao[p] + v) % 64 + 64) % 64;
+  const landingPos  = Math.min(state.jogadoresPosicao[p] + v, 63);
   const isEstrela   = comDinheiro && getNomeCasa(landingPos) === 'EST';
   const ganho       = sal * v * (isEstrela ? 3 : 1);
 
@@ -943,7 +952,8 @@ function _animarCasaPouso(pos, onFim) {
 window.avancarJogador = function(valor) {
   if (_animando) return;
   const p = state.jogador - 1;
-  animarMovimento(p, valor, +1, () => {
+  const casasAvancar = Math.min(valor, Math.max(0, 63 - state.jogadoresPosicao[p]));
+  animarMovimento(p, casasAvancar, +1, () => {
     processarCasa(p, valor);
     atualizarPosicoes();
     atualizarDonos();
@@ -1375,7 +1385,7 @@ function _aposentarJogador(p) {
   const ativos = Array.from({ length: state.qtJogadores }, (_, i) => i)
     .filter(i => state.jogadoresPresentes[i] === 'S');
   const aindaJogando = ativos.filter(i => !state.jogadoresAposentados[i]);
-  if (ativos.length > 0 && aindaJogando.length <= 1) {
+  if (ativos.length > 0 && aindaJogando.length === 0) {
     state.fim = true;
     _pararCronometro();
     tocarSom('fim');
@@ -1923,6 +1933,175 @@ window.fecharVariaveis = async function() {
 window.fazerPergunta = function() {
   mostrarPergunta(state.proximaPergunta);
   state.proximaPergunta = (state.proximaPergunta % 38) + 1;
+};
+
+// ── Painel Dev (easter egg admin) ─────────────────────────────────────────────
+
+const _NOMES_CHEAT_COF  = ['🚨 Emergências', '💭 Sonhos', '👴 Aposentadoria', '❤️ Doações'];
+const _NOMES_CHEAT_BEM  = ['📱 Celular', '🏍️ Moto', '🚗 Carro', '🏠 Casa'];
+const _NOMES_CHEAT_ACAO = ['🏦 Banco', '⚡ Energia', '🛡️ Seguradora', '💧 Saneamento', '📡 Telecom'];
+
+function _cheatP() {
+  return parseInt(document.getElementById('cheatJogador').value, 10);
+}
+
+function _cheatSincronizar() {
+  state.vista = _cheatP() + 1;
+  window._cheatAtualizarUi();
+  atualizarIndicadores();
+  try { renderCofrinhos(); } catch (_) {}
+  try { renderBens();      } catch (_) {}
+  try { renderAcoes();     } catch (_) {}
+  agendarAutoSave();
+}
+
+function _abrirCheatPanel() {
+  const sel = document.getElementById('cheatJogador');
+  sel.innerHTML = '';
+  for (let p = 0; p < state.qtJogadores; p++) {
+    if (state.jogadoresPresentes[p] !== 'S') continue;
+    const nome = state.jogadores[p] || `Jogador ${p + 1}`;
+    sel.innerHTML += `<option value="${p}">${p + 1}. ${nome}</option>`;
+  }
+  window._cheatAtualizarUi();
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalCheatPanel')).show();
+}
+window._abrirCheatPanel = _abrirCheatPanel;
+
+window._cheatAtualizarUi = function() {
+  const elJog = document.getElementById('cheatJogador');
+  if (!elJog) return;
+  const p = _cheatP();
+
+  // Saldo
+  document.getElementById('cheatSaldoAtual').textContent = `R$ ${fmt(state.jogadoresDinheiro[p])}`;
+
+  // Posição
+  document.getElementById('cheatPosAtual').textContent =
+    `${state.jogadoresPosicao[p]} — ${getNomeCasa(state.jogadoresPosicao[p])}`;
+
+  // Cofrinhos
+  document.getElementById('cheatCofrinhos').innerHTML = _NOMES_CHEAT_COF.map((n, c) => `
+    <div class="d-flex align-items-center gap-2 py-1">
+      <span class="text-light small flex-grow-1">${n} <span class="text-warning fw-bold">R$ ${fmt(calcCofrinho(p, c))}</span></span>
+      <input type="number" id="cheatCof${c}" class="form-control form-control-sm bg-dark text-light border-secondary" style="width:110px" min="0" step="1" placeholder="novo valor">
+      <button class="btn btn-outline-warning btn-sm" onclick="window._cheatCofrinho(${c})">Setar</button>
+    </div>
+  `).join('');
+
+  // Bens
+  document.getElementById('cheatBens').innerHTML = _NOMES_CHEAT_BEM.map((n, b) => `
+    <div class="d-flex align-items-center gap-2 py-1">
+      <span class="text-light small flex-grow-1">${n} <span class="text-warning fw-bold">qty: ${state.jogadoresBens[p][b]}</span></span>
+      <input type="number" id="cheatBem${b}" class="form-control form-control-sm bg-dark text-light border-secondary" style="width:80px" min="0" max="9" step="1" value="${state.jogadoresBens[p][b]}">
+      <button class="btn btn-outline-warning btn-sm" onclick="window._cheatBem(${b})">Setar</button>
+    </div>
+  `).join('');
+
+  // Ações
+  document.getElementById('cheatAcoes').innerHTML = _NOMES_CHEAT_ACAO.map((n, a) => `
+    <div class="d-flex align-items-center gap-2 py-1">
+      <span class="text-light small flex-grow-1">${n} <span class="text-warning fw-bold">qty: ${state.jogadoresAcoes[p][a]}</span></span>
+      <input type="number" id="cheatAcao${a}" class="form-control form-control-sm bg-dark text-light border-secondary" style="width:80px" min="0" max="9" step="1" value="${state.jogadoresAcoes[p][a]}">
+      <button class="btn btn-outline-warning btn-sm" onclick="window._cheatAcao(${a})">Setar</button>
+    </div>
+  `).join('');
+
+  // Casas (apenas bônus positivos)
+  const casasPos = CASAS_BONUS.map((v, i) => ({ pos: i, bonus: v })).filter(x => x.bonus > 0);
+  const opcoesJog = `<option value="-1">— Ninguém —</option>` +
+    Array.from({ length: state.qtJogadores }, (_, i) =>
+      state.jogadoresPresentes[i] === 'S'
+        ? `<option value="${i}">${i + 1}. ${state.jogadores[i] || 'J' + (i + 1)}</option>`
+        : ''
+    ).join('');
+  document.getElementById('cheatCasas').innerHTML = casasPos.map(({ pos, bonus }) => {
+    const dono = state.casasDonos[pos];
+    const nomeD = dono !== null ? (state.jogadores[dono] || `J${dono + 1}`) : '—';
+    return `
+      <div class="d-flex align-items-center gap-2 py-1">
+        <span class="text-light small flex-grow-1">Casa ${pos} <span class="text-warning">(+${bonus})</span> dono: <strong>${nomeD}</strong></span>
+        <select id="cheatCasa${pos}" class="form-select form-select-sm bg-dark text-light border-secondary" style="width:155px">${opcoesJog}</select>
+        <button class="btn btn-outline-warning btn-sm" onclick="window._cheatCasaDono(${pos})">Setar</button>
+      </div>`;
+  }).join('');
+  casasPos.forEach(({ pos }) => {
+    const s = document.getElementById(`cheatCasa${pos}`);
+    if (s) s.value = state.casasDonos[pos] ?? -1;
+  });
+};
+
+window._cheatSaldo = function() {
+  const p     = _cheatP();
+  const delta = parseFloat(document.getElementById('cheatSaldoDelta').value) || 0;
+  if (!delta) return;
+  const saldoAntes = state.jogadoresDinheiro[p];
+  state.jogadoresDinheiro[p] += delta;
+  _registrarEvento(p, 'CHEAT', {
+    descricao: `🔧 Dev: saldo ${delta >= 0 ? '+' : ''}R$${fmt(delta)}`,
+    valor: delta, saldoAntes,
+  });
+  document.getElementById('cheatSaldoDelta').value = '';
+  _cheatSincronizar();
+};
+
+window._cheatCofrinho = function(c) {
+  const p     = _cheatP();
+  const input = document.getElementById(`cheatCof${c}`);
+  const valor = parseFloat(input?.value);
+  if (isNaN(valor) || valor < 0) return;
+  for (let r = 0; r < state.rodadas; r++) state.jogadoresCofrinhos[p][c][r] = 0;
+  if (valor > 0) state.jogadoresCofrinhos[p][c][0] = valor / 2;
+  _registrarEvento(p, 'CHEAT', {
+    descricao: `🔧 Dev: cofrinho ${_NOMES_COF[c]} → R$${fmt(valor)}`,
+    valor: 0, saldoAntes: state.jogadoresDinheiro[p],
+  });
+  if (input) input.value = '';
+  _cheatSincronizar();
+};
+
+window._cheatPosicao = function() {
+  const p   = _cheatP();
+  const pos = parseInt(document.getElementById('cheatPosValor').value, 10);
+  if (isNaN(pos) || pos < 0 || pos > 63) return;
+  state.jogadoresPosicao[p] = pos;
+  _registrarEvento(p, 'CHEAT', {
+    descricao: `🔧 Dev: posição → ${pos} (${getNomeCasa(pos)})`,
+    valor: 0, saldoAntes: state.jogadoresDinheiro[p],
+  });
+  atualizarPosicoes();
+  _cheatSincronizar();
+};
+
+window._cheatBem = function(b) {
+  const p   = _cheatP();
+  const qty = parseInt(document.getElementById(`cheatBem${b}`).value, 10);
+  if (isNaN(qty) || qty < 0) return;
+  state.jogadoresBens[p][b] = qty;
+  _registrarEvento(p, 'CHEAT', {
+    descricao: `🔧 Dev: bem ${_NOMES_CHEAT_BEM[b]} qty → ${qty}`,
+    valor: 0, saldoAntes: state.jogadoresDinheiro[p],
+  });
+  _cheatSincronizar();
+};
+
+window._cheatAcao = function(a) {
+  const p   = _cheatP();
+  const qty = parseInt(document.getElementById(`cheatAcao${a}`).value, 10);
+  if (isNaN(qty) || qty < 0) return;
+  state.jogadoresAcoes[p][a] = qty;
+  _registrarEvento(p, 'CHEAT', {
+    descricao: `🔧 Dev: ação ${_NOMES_CHEAT_ACAO[a]} qty → ${qty}`,
+    valor: 0, saldoAntes: state.jogadoresDinheiro[p],
+  });
+  _cheatSincronizar();
+};
+
+window._cheatCasaDono = function(pos) {
+  const donoIdx = parseInt(document.getElementById(`cheatCasa${pos}`).value, 10);
+  state.casasDonos[pos] = donoIdx === -1 ? null : donoIdx;
+  atualizarDonos();
+  _cheatSincronizar();
 };
 
 // ── Boot ──────────────────────────────────────────────────────────────────────

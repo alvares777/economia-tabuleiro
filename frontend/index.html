@@ -1604,5 +1604,74 @@ window._leilaoConfirmar = function() {
 };
 </script>
 
+<!-- MODAL PAINEL DEV (easter egg admin — ativar digitando "dev" fora de inputs) -->
+<div class="modal fade" id="modalCheatPanel" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content bg-dark text-light border-warning">
+      <div class="modal-header border-warning py-2">
+        <h6 class="modal-title text-warning mb-0">🔧 Painel Dev <small class="text-muted ms-2 fw-normal">easter egg</small></h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+
+        <div class="mb-3">
+          <label class="form-label small text-warning fw-bold">Jogador</label>
+          <select id="cheatJogador" class="form-select form-select-sm bg-dark text-light border-secondary"
+                  onchange="window._cheatAtualizarUi()"></select>
+        </div>
+
+        <ul class="nav nav-tabs nav-fill mb-3" id="cheatTabs" role="tablist">
+          <li class="nav-item" role="presentation"><button class="nav-link active text-warning py-1 px-2" style="font-size:.82rem" data-bs-toggle="tab" data-bs-target="#cheatTabSaldo">💰 Saldo</button></li>
+          <li class="nav-item" role="presentation"><button class="nav-link text-warning py-1 px-2" style="font-size:.82rem" data-bs-toggle="tab" data-bs-target="#cheatTabCof">🐷 Cofrinhos</button></li>
+          <li class="nav-item" role="presentation"><button class="nav-link text-warning py-1 px-2" style="font-size:.82rem" data-bs-toggle="tab" data-bs-target="#cheatTabPos">🗺️ Posição</button></li>
+          <li class="nav-item" role="presentation"><button class="nav-link text-warning py-1 px-2" style="font-size:.82rem" data-bs-toggle="tab" data-bs-target="#cheatTabBens">🏠 Bens</button></li>
+          <li class="nav-item" role="presentation"><button class="nav-link text-warning py-1 px-2" style="font-size:.82rem" data-bs-toggle="tab" data-bs-target="#cheatTabAcoes">📈 Ações</button></li>
+          <li class="nav-item" role="presentation"><button class="nav-link text-warning py-1 px-2" style="font-size:.82rem" data-bs-toggle="tab" data-bs-target="#cheatTabCasas">🏘️ Casas</button></li>
+        </ul>
+
+        <div class="tab-content">
+
+          <div class="tab-pane fade show active" id="cheatTabSaldo">
+            <p class="small text-light mb-2">Saldo atual: <strong id="cheatSaldoAtual" class="text-warning">—</strong></p>
+            <div class="input-group input-group-sm">
+              <span class="input-group-text bg-dark text-warning border-secondary">Δ R$</span>
+              <input type="number" id="cheatSaldoDelta" class="form-control bg-dark text-light border-secondary" placeholder="ex: 100 ou -50" step="any">
+              <button class="btn btn-outline-warning btn-sm" onclick="window._cheatSaldo()">Aplicar</button>
+            </div>
+            <p class="text-muted small mt-2">Positivo adiciona, negativo desconta.</p>
+          </div>
+
+          <div class="tab-pane fade" id="cheatTabCof">
+            <div id="cheatCofrinhos" class="d-grid gap-2"></div>
+          </div>
+
+          <div class="tab-pane fade" id="cheatTabPos">
+            <p class="small text-light mb-2">Posição atual: <strong id="cheatPosAtual" class="text-warning">—</strong></p>
+            <div class="input-group input-group-sm">
+              <span class="input-group-text bg-dark text-warning border-secondary">Casa</span>
+              <input type="number" id="cheatPosValor" class="form-control bg-dark text-light border-secondary" min="0" max="63" step="1">
+              <button class="btn btn-outline-warning btn-sm" onclick="window._cheatPosicao()">Mover</button>
+            </div>
+            <p class="text-muted small mt-2">0 = INÍCIO · 63 = última casa</p>
+          </div>
+
+          <div class="tab-pane fade" id="cheatTabBens">
+            <div id="cheatBens" class="d-grid gap-2"></div>
+          </div>
+
+          <div class="tab-pane fade" id="cheatTabAcoes">
+            <div id="cheatAcoes" class="d-grid gap-2"></div>
+          </div>
+
+          <div class="tab-pane fade" id="cheatTabCasas">
+            <div id="cheatCasas" class="d-grid gap-2"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
